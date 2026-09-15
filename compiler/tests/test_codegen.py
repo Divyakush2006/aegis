@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import pytest
 
-from aegis.codegen import llvm_emitter
-from aegis.frontend.adapter import parse_source
-from aegis.ir.lowering import lower_program
+from prahari.codegen import llvm_emitter
+from prahari.frontend.adapter import parse_source
+from prahari.ir.lowering import lower_program
 
 pytestmark = pytest.mark.skipif(
     not llvm_emitter.LLVM_AVAILABLE, reason="llvmlite is not installed"
@@ -196,8 +196,8 @@ class TestEscapeDecoding:
 class TestErrors:
     def test_ssa_form_is_rejected_with_a_clear_message(self):
         """Codegen consumes the pre-SSA list; phis are LLVM's job."""
-        from aegis.ir.cfg import build_cfgs
-        from aegis.ir.ssa import build_ssa
+        from prahari.ir.cfg import build_cfgs
+        from prahari.ir.ssa import build_ssa
 
         module = build("int f(int n) { int t; t = 0; if (n) { t = 1; } return t; }")
         cfgs = build_cfgs(module)

@@ -1,4 +1,4 @@
-"""Model benchmark: which free model is the best adjudicator for Aegis findings?
+"""Model benchmark: which free model is the best adjudicator for Prahari findings?
 
 Model selection happens in two stages, and this file is the second.
 
@@ -56,10 +56,10 @@ ROOT = HERE.parent
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(HERE))
 
-from aegis.ai.adjudicator import Adjudicator  # noqa: E402
-from aegis.ai.config import is_free_model, load_config  # noqa: E402
-from aegis.ai.gateway import build_gateway  # noqa: E402
-from aegis.ai.gateway.null import NullGateway  # noqa: E402
+from prahari.ai.adjudicator import Adjudicator  # noqa: E402
+from prahari.ai.config import is_free_model, load_config  # noqa: E402
+from prahari.ai.gateway import build_gateway  # noqa: E402
+from prahari.ai.gateway.null import NullGateway  # noqa: E402
 from harness import Metrics, _roots, classify_function, expected_cwe, score_file  # noqa: E402
 
 CORPORA = (HERE / "corpus", HERE / "corpus_hard")
@@ -433,7 +433,7 @@ def catalogue_for(environ: dict):
     if not config.configured or config.provider != "openrouter":
         return None
     try:
-        from aegis.ai.catalogue import fetch_models
+        from prahari.ai.catalogue import fetch_models
 
         return {m.id: m for m in fetch_models(config.base_url, config.api_key, config.provider)}
     except Exception as exc:
@@ -521,7 +521,7 @@ def recommend_interactive(results: list[ModelResult]) -> ModelResult | None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Rank free models as adjudicators for Aegis.")
+    parser = argparse.ArgumentParser(description="Rank free models as adjudicators for Prahari.")
     parser.add_argument("--models", nargs="+", help="model ids to compare (default: the shortlist)")
     parser.add_argument("--yes", action="store_true", help="spend requests; without it, only plan")
     parser.add_argument("--sample", type=int, help=f"findings to review per model (default {DEFAULT_SAMPLE})")
@@ -546,9 +546,9 @@ def main(argv: list[str] | None = None) -> int:
         environ.update(
             {
                 "OPENROUTER_API_KEY": "sk-or-v1-mock",
-                "AEGIS_API_BASE": f"http://127.0.0.1:{server.server_address[1]}",
-                "AEGIS_AI_PROVIDER": "openrouter",
-                "AEGIS_AI_RPM": "0",
+                "PRAHARI_API_BASE": f"http://127.0.0.1:{server.server_address[1]}",
+                "PRAHARI_AI_PROVIDER": "openrouter",
+                "PRAHARI_AI_RPM": "0",
             }
         )
         args.no_cache = True
@@ -649,9 +649,9 @@ def main(argv: list[str] | None = None) -> int:
                 print("  every model reduced accuracy; leave adjudication off.")
             else:
                 print("\n  to use them, set in .env:")
-                print(f"    AEGIS_MODEL={review.model}")
+                print(f"    PRAHARI_MODEL={review.model}")
                 if interactive is not None:
-                    print(f"    AEGIS_MODEL_INTERACTIVE={interactive.model}")
+                    print(f"    PRAHARI_MODEL_INTERACTIVE={interactive.model}")
 
         report = {
             "provider": config.provider,

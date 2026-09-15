@@ -1,6 +1,6 @@
 # Adjudication
 
-How Aegis uses a language model, and — more importantly — what it does not let
+How Prahari uses a language model, and — more importantly — what it does not let
 one do.
 
 ---
@@ -22,8 +22,8 @@ Run it:
 ```bash
 cp .env.example .env               # at the project root; set OPENROUTER_API_KEY=sk-or-...
 cd compiler
-aegis ai --check                   # one request, verifies key and model
-aegis audit examples --adjudicate
+prahari ai --check                   # one request, verifies key and model
+prahari audit examples --adjudicate
 ```
 
 With no key configured, every one of those still works. The audit runs, the
@@ -146,17 +146,17 @@ treated as a miss, never an error: a cache that can break a build is worse than
 no cache.
 
 ```bash
-aegis audit src/ --adjudicate --no-ai-cache    # bypass it
-aegis ai                                        # where it lives
+prahari audit src/ --adjudicate --no-ai-cache    # bypass it
+prahari ai                                        # where it lives
 ```
 
 ---
 
 ## Configuration
 
-Three sources, lowest precedence first: a committed `aegis.toml`, a git-ignored
+Three sources, lowest precedence first: a committed `prahari.toml`, a git-ignored
 `.env` at the project root, then the real environment. See
-[`.env.example`](../.env.example) and [`aegis.toml.example`](../aegis.toml.example).
+[`.env.example`](../.env.example) and [`prahari.toml.example`](../prahari.toml.example).
 
 `.env` is found by searching upward from the working directory, so the same file
 serves the CLI run from `compiler/`, the benchmark, and the language server the
@@ -164,29 +164,29 @@ IDE spawns.
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `OPENROUTER_API_KEY` / `AEGIS_API_KEY` / `ANTHROPIC_API_KEY` | — | credential; `.env` or environment, **never** `aegis.toml` |
-| `AEGIS_AI_PROVIDER` | detected from the key | `openrouter` or `anthropic` |
-| `AEGIS_MODEL` | per provider | `review` model id (`vendor/model:free` on OpenRouter) |
-| `AEGIS_MODEL_INTERACTIVE` | per provider | `interactive` model id, used by the IDE |
-| `AEGIS_MODEL_FALLBACKS` | per provider | comma-separated, tried in order |
-| `AEGIS_AI_FREE_ONLY` | `1` on OpenRouter | refuse any model id without `:free` |
-| `AEGIS_AI_REASONING` / `_INTERACTIVE` | `medium` / `low` | `none` · `minimal` · `low` · `medium` · `high` |
-| `AEGIS_AI_RPM` | `16` on OpenRouter | client-side pacing; `0` disables |
-| `AEGIS_API_BASE` | per provider | endpoint (a proxy, or the mock) |
-| `AEGIS_AI_MAX_REQUESTS` | `200` | hard per-run request ceiling |
-| `AEGIS_AI_RETRIES` | `3` | retries for retryable failures |
-| `AEGIS_AI_TIMEOUT` | `30` | seconds per request |
-| `AEGIS_AI_REQUIRE_TOOLS` | `0` | reject models that answer in prose |
-| `AEGIS_AI_CACHE` | `1` | on/off |
-| `AEGIS_AI_CACHE_DIR` | platform cache dir | where verdicts are stored |
-| `AEGIS_NO_DOTENV` | `0` | ignore `.env`; the test suite sets it |
+| `OPENROUTER_API_KEY` / `PRAHARI_API_KEY` / `ANTHROPIC_API_KEY` | — | credential; `.env` or environment, **never** `prahari.toml` |
+| `PRAHARI_AI_PROVIDER` | detected from the key | `openrouter` or `anthropic` |
+| `PRAHARI_MODEL` | per provider | `review` model id (`vendor/model:free` on OpenRouter) |
+| `PRAHARI_MODEL_INTERACTIVE` | per provider | `interactive` model id, used by the IDE |
+| `PRAHARI_MODEL_FALLBACKS` | per provider | comma-separated, tried in order |
+| `PRAHARI_AI_FREE_ONLY` | `1` on OpenRouter | refuse any model id without `:free` |
+| `PRAHARI_AI_REASONING` / `_INTERACTIVE` | `medium` / `low` | `none` · `minimal` · `low` · `medium` · `high` |
+| `PRAHARI_AI_RPM` | `16` on OpenRouter | client-side pacing; `0` disables |
+| `PRAHARI_API_BASE` | per provider | endpoint (a proxy, or the mock) |
+| `PRAHARI_AI_MAX_REQUESTS` | `200` | hard per-run request ceiling |
+| `PRAHARI_AI_RETRIES` | `3` | retries for retryable failures |
+| `PRAHARI_AI_TIMEOUT` | `30` | seconds per request |
+| `PRAHARI_AI_REQUIRE_TOOLS` | `0` | reject models that answer in prose |
+| `PRAHARI_AI_CACHE` | `1` | on/off |
+| `PRAHARI_AI_CACHE_DIR` | platform cache dir | where verdicts are stored |
+| `PRAHARI_NO_DOTENV` | `0` | ignore `.env`; the test suite sets it |
 
-An `api_key` written into `aegis.toml` is **deliberately ignored**, because that
-file is the one that gets committed. `aegis ai` prints a 12-character
+An `api_key` written into `prahari.toml` is **deliberately ignored**, because that
+file is the one that gets committed. `prahari ai` prints a 12-character
 fingerprint of the key, never the key:
 
 ```console
-$ aegis ai
+$ prahari ai
 adjudication configuration
   provider           anthropic
   model              claude-sonnet-5
@@ -194,7 +194,7 @@ adjudication configuration
   key_fingerprint    9b35edb491b3
   base_url           https://api.anthropic.com
   max_requests       200
-  cache              ~/.cache/aegis/adjudication
+  cache              ~/.cache/prahari/adjudication
   redact_paths       True
 ```
 
@@ -202,18 +202,18 @@ adjudication configuration
 
 ## Running on free models
 
-Aegis is configured to cost nothing. With an OpenRouter key, **free-only mode is
+Prahari is configured to cost nothing. With an OpenRouter key, **free-only mode is
 on by default**: any model id that does not end in `:free` is refused before a
-request is built — whether it came from `.env`, `aegis.toml` or `--model` — and
+request is built — whether it came from `.env`, `prahari.toml` or `--model` — and
 the refusal is reported with the offending id. A typo cannot become a bill.
 
 ### One model per use case
 
-Aegis consults a model in two situations with opposite requirements:
+Prahari consults a model in two situations with opposite requirements:
 
 | Use case | Where | Priority | Reasoning effort |
 |---|---|---|---|
-| `review` | `aegis audit --adjudicate`, CI | accuracy; nobody is waiting | `medium` |
+| `review` | `prahari audit --adjudicate`, CI | accuracy; nobody is waiting | `medium` |
 | `interactive` | IDE *Review Findings with AI* | time to verdict; a developer is waiting | `low` |
 
 Both share an ordered **fallback chain on different providers**, sent as
@@ -227,7 +227,7 @@ stays attributable.
 with tool calling and strong independent results (Artificial Analysis
 Intelligence Index v4.3, vendor model cards and release tables).
 
-**Stage 2 — a live probe** sent every shortlisted model the exact request Aegis
+**Stage 2 — a live probe** sent every shortlisted model the exact request Prahari
 sends: the adjudication system prompt, a forced `record_verdict` tool call.
 
 | Model | Published evidence | Live probe (this key) |
@@ -242,7 +242,7 @@ sends: the adjudication system prompt, a forced `record_verdict` tool call.
 | North Mini Code | SWE-bench Verified 67.6%, SWE-bench Pro 40.2% | tool call OK, 4.7 s |
 
 The two strongest models on paper are unusable from a non-listed application,
-and presenting Aegis as a listed app to get past the gate would be
+and presenting Prahari as a listed app to get past the gate would be
 impersonation, so they were dropped. Reachability is a selection criterion, not
 an afterthought: a default that returns 429 is a default that silently does not
 work.
@@ -287,9 +287,9 @@ These are defaults, not a lock-in. Free model availability changes weekly, which
 is why the evidence is a re-runnable command rather than a paragraph:
 
 ```bash
-aegis ai --models                  # what is free and reachable today
+prahari ai --models                  # what is free and reachable today
 python eval/model_bench.py         # the plan and request count; spends nothing
-python eval/model_bench.py --yes   # re-rank, then set AEGIS_MODEL in .env
+python eval/model_bench.py --yes   # re-rank, then set PRAHARI_MODEL in .env
 ```
 
 ### Spending a daily quota carefully
@@ -327,7 +327,7 @@ whose `arguments` arrive as a **JSON string**, errors that can arrive inside a
 `200` body, and `402` for an account without credit (reported plainly, never
 retried). Not every model on the platform supports tool calling; those answer
 in prose, the gateway parses the JSON out of the content, and the benchmark
-reports how many verdicts took each path. Set `AEGIS_AI_REQUIRE_TOOLS=1` to
+reports how many verdicts took each path. Set `PRAHARI_AI_REQUIRE_TOOLS=1` to
 reject prose answers outright.
 
 ---
@@ -337,7 +337,7 @@ reject prose answers outright.
 "Best" is measured against the evaluation's own ground truth, not asserted.
 
 ```bash
-aegis ai --models                                  # what the key can reach, ranked
+prahari ai --models                                  # what the key can reach, ranked
 python eval/model_bench.py                         # the plan and its cost; spends nothing
 python eval/model_bench.py --yes                   # run it
 python eval/model_bench.py --models a/x b/y --yes  # specific candidates
@@ -384,8 +384,8 @@ injected transport cannot catch.
 
 ```bash
 python eval/mock_model.py --port 8787 &
-AEGIS_API_KEY=mock AEGIS_API_BASE=http://127.0.0.1:8787 \
-    aegis audit examples --adjudicate
+PRAHARI_API_KEY=mock PRAHARI_API_BASE=http://127.0.0.1:8787 \
+    prahari audit examples --adjudicate
 ```
 
 Its verdicts are a fixed rule, not a model: dismiss when a guard mentions a
@@ -402,9 +402,9 @@ degradation paths can be demonstrated rather than described.
 
 | Command | Effect |
 |---|---|
-| **Aegis: Audit Current File** (`Ctrl+Alt+A`) | local, free, no network |
-| **Aegis: Review Findings with AI** | audits, then adjudicates |
-| **Aegis: AI Adjudication Status** | model, endpoint, key fingerprint |
+| **Prahari: Audit Current File** (`Ctrl+Alt+A`) | local, free, no network |
+| **Prahari: Review Findings with AI** | audits, then adjudicates |
+| **Prahari: AI Adjudication Status** | model, endpoint, key fingerprint |
 
 Kept separate on purpose: an audit is free and runs whenever asked, while
 review costs a round trip per finding. That should be something a user chooses,

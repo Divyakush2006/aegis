@@ -31,7 +31,7 @@ async function isMounted(root) {
 
 function describe(root, isSystem) {
     return {
-        enumerator: 'aegis-drivelist-fallback',
+        enumerator: 'prahari-drivelist-fallback',
         busType: 'UNKNOWN',
         device: root,
         devicePath: null,

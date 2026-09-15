@@ -10,13 +10,13 @@ import pytest
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
-from aegis.analysis.callgraph import analyse_program  # noqa: E402
-from aegis.analysis.specs import SpecTable  # noqa: E402
-from aegis.frontend.adapter import parse_source  # noqa: E402
-from aegis.index import build_index  # noqa: E402
-from aegis.ir.cfg import build_cfgs  # noqa: E402
-from aegis.ir.lowering import lower_program  # noqa: E402
-from aegis.ir.ssa import build_ssa  # noqa: E402
+from prahari.analysis.callgraph import analyse_program  # noqa: E402
+from prahari.analysis.specs import SpecTable  # noqa: E402
+from prahari.frontend.adapter import parse_source  # noqa: E402
+from prahari.index import build_index  # noqa: E402
+from prahari.ir.cfg import build_cfgs  # noqa: E402
+from prahari.ir.lowering import lower_program  # noqa: E402
+from prahari.ir.ssa import build_ssa  # noqa: E402
 
 EXAMPLES = ROOT / "examples"
 
@@ -24,14 +24,14 @@ EXAMPLES = ROOT / "examples"
 # real key in the project's .env, or one exported in the shell, would otherwise
 # turn tests of the unconfigured path into paid API calls -- and make their
 # results depend on whose machine they ran on. Subprocesses inherit this too.
-os.environ["AEGIS_NO_DOTENV"] = "1"
+os.environ["PRAHARI_NO_DOTENV"] = "1"
 for _variable in (
-    "AEGIS_API_KEY",
+    "PRAHARI_API_KEY",
     "OPENROUTER_API_KEY",
     "ANTHROPIC_API_KEY",
-    "AEGIS_API_BASE",
-    "AEGIS_MODEL",
-    "AEGIS_AI_PROVIDER",
+    "PRAHARI_API_BASE",
+    "PRAHARI_MODEL",
+    "PRAHARI_AI_PROVIDER",
 ):
     os.environ.pop(_variable, None)
 

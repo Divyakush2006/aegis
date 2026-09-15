@@ -1,14 +1,14 @@
 {
-  "name": "aegis-ide-monorepo",
+  "name": "prahari-ide-monorepo",
   "private": true,
   "version": "0.1.0",
-  "description": "Aegis IDE — a Theia-based development environment for the Aegis compiler",
+  "description": "Prahari IDE — a Theia-based development environment for the Prahari compiler",
   "license": "MIT",
   "engines": {
     "node": ">=18"
   },
   "workspaces": [
-    "aegis-ide",
+    "prahari-ide",
     "browser-app"
   ],
   "devDependencies": {
@@ -18,8 +18,8 @@
   },
   "scripts": {
     "clean": "npm run clean --workspaces --if-present",
-    "build": "npm run build --workspace aegis-ide && npm run build --workspace browser-app",
+    "build": "npm run build --workspace prahari-ide && npm run build --workspace browser-app",
     "start": "npm run start --workspace browser-app",
-    "watch": "npm run watch --workspace aegis-ide"
+    "watch": "npm run watch --workspace prahari-ide"
   }
 }

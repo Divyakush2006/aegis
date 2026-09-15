@@ -1,5 +1,5 @@
 /**
- * Real-browser check of the running Aegis IDE.
+ * Real-browser check of the running Prahari IDE.
  *
  * `e2e-check.js` proves Node can drive the Python language server. This proves
  * the *application* works: it opens the IDE in headless Chrome, drives it the
@@ -12,9 +12,9 @@
  *   1. the Theia shell mounts with compiler/examples as the workspace;
  *   2. /favicon.ico is served;
  *   3. cmd_injection.c opens through Go to File (Ctrl+P);
- *   4. every Aegis command is registered in the command palette;
- *   5. "Aegis: Audit Current File" lists findings with their path trace;
- *   6. "Aegis: AI Adjudication Status" and "Review Findings with AI" round-trip
+ *   4. every Prahari command is registered in the command palette;
+ *   5. "Prahari: Audit Current File" lists findings with their path trace;
+ *   6. "Prahari: AI Adjudication Status" and "Review Findings with AI" round-trip
  *      through the backend and the language server (with no key configured the
  *      review reports that and keeps the compiler's verdicts, which also passes).
  *
@@ -22,31 +22,31 @@
  *
  *     node browser-check.js
  *
- * Environment: AEGIS_IDE_URL (default http://127.0.0.1:3000/), AEGIS_CHROME
+ * Environment: PRAHARI_IDE_URL (default http://127.0.0.1:3000/), PRAHARI_CHROME
  * (path to a Chrome or Chromium binary; common install locations are searched),
- * AEGIS_SCREENSHOT (where to save a PNG of the final state).
+ * PRAHARI_SCREENSHOT (where to save a PNG of the final state).
  */
 const { spawn } = require('child_process');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const APP = process.env.AEGIS_IDE_URL || 'http://127.0.0.1:3000/';
+const APP = process.env.PRAHARI_IDE_URL || 'http://127.0.0.1:3000/';
 const PORT = 9300 + Math.floor(Math.random() * 500);
-const SCREENSHOT = process.env.AEGIS_SCREENSHOT || path.join(os.tmpdir(), 'aegis-ide.png');
+const SCREENSHOT = process.env.PRAHARI_SCREENSHOT || path.join(os.tmpdir(), 'prahari-ide.png');
 const EXPECTED_COMMANDS = [
-    'Aegis: Audit Current File',
-    'Aegis: Review Findings with AI',
-    'Aegis: AI Adjudication Status',
-    'Aegis: Explain Function at Cursor',
-    'Aegis: Show Generated LLVM IR'
+    'Prahari: Audit Current File',
+    'Prahari: Review Findings with AI',
+    'Prahari: AI Adjudication Status',
+    'Prahari: Explain Function at Cursor',
+    'Prahari: Show Generated LLVM IR'
 ];
 
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 function findChrome() {
     const candidates = [
-        process.env.AEGIS_CHROME,
+        process.env.PRAHARI_CHROME,
         'C:/Program Files/Google/Chrome/Application/chrome.exe',
         'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
         'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
@@ -58,7 +58,7 @@ function findChrome() {
     ].filter(Boolean);
     const found = candidates.find(candidate => fs.existsSync(candidate));
     if (!found) {
-        throw new Error('no Chrome, Chromium or Edge found; set AEGIS_CHROME');
+        throw new Error('no Chrome, Chromium or Edge found; set PRAHARI_CHROME');
     }
     return found;
 }
@@ -85,7 +85,7 @@ async function waitFor(check, timeoutMs, label) {
 }
 
 async function main() {
-    const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'aegis-browser-check-'));
+    const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'prahari-browser-check-'));
     const chrome = spawn(findChrome(), [
         '--headless=new', '--disable-gpu', '--no-first-run', '--no-default-browser-check',
         `--remote-debugging-port=${PORT}`, `--user-data-dir=${profile}`, '--window-size=1500,950',
@@ -154,7 +154,7 @@ async function main() {
             await key('F1', 'F1', 112);
             await waitFor(quickInputOpen, 15000, 'the command palette');
             await setQuickInput(`>${label}`);
-            await waitFor(async () => (await firstRow()).includes(label.replace(/^Aegis: /, '')),
+            await waitFor(async () => (await firstRow()).includes(label.replace(/^Prahari: /, '')),
                 10000, `"${label}" in the palette`);
             await key('Enter', 'Enter', 13);
         };
@@ -207,7 +207,7 @@ async function main() {
         // 4. The commands.
         await key('F1', 'F1', 112);
         await waitFor(quickInputOpen, 15000, 'the command palette');
-        await setQuickInput('>Aegis');
+        await setQuickInput('>Prahari');
         await pause(1500);
         const listed = await evaluate(
             "[...document.querySelectorAll('.quick-input-list .monaco-list-row')].map(r => (r.getAttribute('aria-label') || r.textContent).trim())"
@@ -219,26 +219,26 @@ async function main() {
         report.commands = EXPECTED_COMMANDS.length;
 
         // 5. Audit.
-        await runCommand('Aegis: Audit Current File');
+        await runCommand('Prahari: Audit Current File');
         report.audit = await waitFor(async () => {
-            const count = await evaluate("document.querySelectorAll('.aegis-finding-title').length");
-            return count ? evaluate("document.querySelector('.aegis-header-title').textContent") : undefined;
-        }, 90000, 'findings in the Aegis panel');
-        report.findings = await evaluate("[...document.querySelectorAll('.aegis-finding-title')].map(e => e.textContent)");
-        const steps = await evaluate("document.querySelectorAll('.aegis-step').length");
+            const count = await evaluate("document.querySelectorAll('.prahari-finding-title').length");
+            return count ? evaluate("document.querySelector('.prahari-header-title').textContent") : undefined;
+        }, 90000, 'findings in the Prahari panel');
+        report.findings = await evaluate("[...document.querySelectorAll('.prahari-finding-title')].map(e => e.textContent)");
+        const steps = await evaluate("document.querySelectorAll('.prahari-step').length");
         if (!steps) {
             throw new Error('findings rendered without a path trace');
         }
 
         // 6. AI status and review.
-        await runCommand('Aegis: AI Adjudication Status');
+        await runCommand('Prahari: AI Adjudication Status');
         report.aiStatus = await waitFor(async () => {
             const text = await evaluate('document.body.innerText');
-            const line = text && text.split('\n').find(l => l.includes('Aegis AI:'));
+            const line = text && text.split('\n').find(l => l.includes('Prahari AI:'));
             return line ? line.trim() : undefined;
         }, 60000, 'the AI status notification');
 
-        await runCommand('Aegis: Review Findings with AI');
+        await runCommand('Prahari: Review Findings with AI');
         report.aiReview = await waitFor(async () => {
             const text = await evaluate('document.body.innerText');
             const line = text && text.split('\n').find(l =>

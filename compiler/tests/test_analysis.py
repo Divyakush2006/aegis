@@ -3,10 +3,10 @@ from __future__ import annotations
 
 import pytest
 
-from aegis.analysis import live_vars, memory, reaching_defs
-from aegis.analysis.framework import Direction
-from aegis.analysis.lattice import FlatLattice, MapLattice, SetLattice
-from aegis.analysis.specs import RETURN, SpecTable
+from prahari.analysis import live_vars, memory, reaching_defs
+from prahari.analysis.framework import Direction
+from prahari.analysis.lattice import FlatLattice, MapLattice, SetLattice
+from prahari.analysis.specs import RETURN, SpecTable
 
 
 class TestLattices:

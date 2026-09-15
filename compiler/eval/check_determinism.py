@@ -44,7 +44,7 @@ VOLATILE = frozenset({"stats.elapsed_seconds", "adjudication.elapsed_seconds"})
 
 def audit(paths: list[str], extra: list[str] | None = None) -> dict:
     """Run the real CLI, the way a user or a CI job would."""
-    command = [sys.executable, "-m", "aegis.cli", "audit", *paths, "--format", "json", *(extra or [])]
+    command = [sys.executable, "-m", "prahari.cli", "audit", *paths, "--format", "json", *(extra or [])]
     result = subprocess.run(
         command,
         capture_output=True,
@@ -109,7 +109,7 @@ def differences(first, second, path: str = "") -> list[str]:
 def audit_in_process(path: str) -> dict:
     """The same pipeline without process startup, for the per-file sweep."""
     sys.path.insert(0, str(ROOT / "src"))
-    from aegis.index import build_index
+    from prahari.index import build_index
 
     index = build_index([path])
     return {

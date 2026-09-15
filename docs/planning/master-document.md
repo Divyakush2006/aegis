@@ -1,4 +1,4 @@
-# AEGIS
+# PRAHARI
 
 **A Security-Aware Compiler with Integrated AI-Assisted Development Environment**
 
@@ -8,13 +8,13 @@ Master Project Document · Version 1.0
 
 ## 1. Project Topic
 
-> **Aegis** is a compiler for a C-subset language whose intermediate representations are reused as the context substrate for two AI-assisted capabilities: an in-editor coding assistant during development, and a whole-project security audit pass invoked on demand at the end of a development session.
+> **Prahari** is a compiler for a C-subset language whose intermediate representations are reused as the context substrate for two AI-assisted capabilities: an in-editor coding assistant during development, and a whole-project security audit pass invoked on demand at the end of a development session.
 
 The central thesis is one sentence long:
 
 **A compiler already computes everything an AI assistant needs to be accurate. Most AI tooling throws that away and re-derives it badly from raw text.**
 
-Cursor, Copilot and every embedding-based assistant operate on token streams and vector similarity. They do not know that `buf` on line 40 is the same storage as `dst` on line 12, because establishing that requires symbol resolution, SSA renaming and interprocedural dataflow. A compiler computes exactly that as a byproduct of compilation. Aegis exposes it.
+Cursor, Copilot and every embedding-based assistant operate on token streams and vector similarity. They do not know that `buf` on line 40 is the same storage as `dst` on line 12, because establishing that requires symbol resolution, SSA renaming and interprocedural dataflow. A compiler computes exactly that as a byproduct of compilation. Prahari exposes it.
 
 ### 1.1 What makes this a compiler project
 
@@ -48,7 +48,7 @@ Llama identified 8 safe samples correctly out of 1,325. A detector that flags ne
 
 Neurosymbolic systems that pair a language model with real program analysis perform far better. IRIS (ICLR 2025) combines LLM-inferred taint specifications with CodeQL and detects 55 of 120 vulnerabilities on CWE-Bench-Java where CodeQL alone detects 27. Its 2026 successor vEcho reaches 65% detection while reducing false positive rate from 84.82% to 59.78%.
 
-**Aegis adopts that architecture and asks a narrower question:** does an ordinary compiler's own dataflow machinery, built from scratch, provide enough structure to make a small quantized open model useful as a security adjudicator?
+**Prahari adopts that architecture and asks a narrower question:** does an ordinary compiler's own dataflow machinery, built from scratch, provide enough structure to make a small quantized open model useful as a security adjudicator?
 
 ### 2.1 Scope boundary
 
@@ -71,7 +71,7 @@ Pointer arithmetic, function pointers, `goto`, unions and variadic user function
 
 ```mermaid
 graph TB
-    subgraph Client["Aegis Editor (Browser)"]
+    subgraph Client["Prahari Editor (Browser)"]
         ED[CodeMirror 6 Editor]
         AP[Assistant Panel]
         FP[Findings Panel]
@@ -81,7 +81,7 @@ graph TB
         LSP[LSP / JSON-RPC]
     end
 
-    subgraph Core["Aegis Compiler Core"]
+    subgraph Core["Prahari Compiler Core"]
         LEX[Lexer] --> PAR[Parser]
         PAR --> SEM[Semantic Analyzer]
         SEM --> IRG[IR Generator]
@@ -402,7 +402,7 @@ The report's central result. Each row adds exactly one component.
 | + intraprocedural taint | | | | | | |
 | + interprocedural summaries | | | | | | |
 | + LLM-inferred specifications | | | | | | |
-| + LLM adjudication (full Aegis) | | | | | | |
+| + LLM adjudication (full Prahari) | | | | | | |
 | *Control:* model on raw files | | | | | | |
 
 Two findings are publishable if they hold:
@@ -410,7 +410,7 @@ Two findings are publishable if they hold:
 1. **LLM-inferred specifications increase recall** over hand-written ones, by resolving library functions no human spec-writer enumerated.
 2. **LLM adjudication reduces FPR** without a proportional recall loss, because the model is verifying narrow slices rather than searching files.
 
-The control row exists to quantify what the compiler contributes. Published reference points: vEcho at 65% detection / 59.78% FPR, IRIS at 45.83% / 84.82%. Those use frontier models on real-world Java; Aegis uses a quantized 7B model on synthetic C. **Do not claim comparability.** Cite them as context for the problem's difficulty, not as competitors.
+The control row exists to quantify what the compiler contributes. Published reference points: vEcho at 65% detection / 59.78% FPR, IRIS at 45.83% / 84.82%. Those use frontier models on real-world Java; Prahari uses a quantized 7B model on synthetic C. **Do not claim comparability.** Cite them as context for the problem's difficulty, not as competitors.
 
 ### 7.3 Secondary metrics
 
@@ -443,7 +443,7 @@ The last one matters. LLM vulnerability reasoning is documented as non-determini
 ## 9. Module Breakdown
 
 ```
-aegis/
+prahari/
 ├── compiler/
 │   ├── lexer.py                 # DFA scanner, token stream
 │   ├── parser.py                # recursive descent + Pratt
@@ -524,7 +524,7 @@ aegis/
 
 ## 12. Deliverables
 
-1. Aegis compiler — complete front end through LLVM codegen
+1. Prahari compiler — complete front end through LLVM codegen
 2. Generic dataflow framework with three instantiations
 3. Interprocedural taint analysis with six CWE detectors
 4. Local AI layer: specification inference, path adjudication, development assistant

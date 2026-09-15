@@ -1,10 +1,10 @@
 <div align="center">
 
-# Aegis
+# Prahari
 
 **A security-aware C compiler, and an IDE built around it.**
 
-[![CI](https://github.com/Divyakush2006/aegis/actions/workflows/ci.yml/badge.svg)](https://github.com/Divyakush2006/aegis/actions/workflows/ci.yml)
+[![CI](https://github.com/Divyakush2006/prahari/actions/workflows/ci.yml/badge.svg)](https://github.com/Divyakush2006/prahari/actions/workflows/ci.yml)
 [![Tests](https://img.shields.io/badge/tests-371%20passing-brightgreen)](compiler/tests)
 [![Python](https://img.shields.io/badge/python-3.10%20–%203.13-blue)](compiler/pyproject.toml)
 [![SARIF](https://img.shields.io/badge/output-SARIF%202.1.0-informational)](docs/RESULTS.md)
@@ -16,7 +16,7 @@
 
 ---
 
-Aegis compiles a subset of C through a complete front end — preprocessing,
+Prahari compiles a subset of C through a complete front end — preprocessing,
 parsing, semantic analysis, three-address IR, SSA construction, control flow
 graphs — and then reuses that same machinery as a static application security
 testing engine.
@@ -36,9 +36,9 @@ Compiler project/
 ## What it does
 
 ```console
-$ aegis audit examples/cmd_injection.c
+$ prahari audit examples/cmd_injection.c
 
-● CWE-78: OS Command Injection · ERROR · aegis/cwe78
+● CWE-78: OS Command Injection · ERROR · prahari/cwe78
 
   ● SOURCE    cmd_injection.c:10  int main(int argc, char **argv) {
   │                               parameter is attacker-controlled
@@ -67,7 +67,7 @@ already stand on the path.
 And it is a real compiler — the same IR feeds LLVM:
 
 ```console
-$ aegis build prog.c --emit obj -o prog.o && gcc prog.o -o prog && ./prog
+$ prahari build prog.c --emit obj -o prog.o && gcc prog.o -o prog && ./prog
 fib: 0 1 1 2 3 5 8 13 21 34
 gcd(1071,462) = 21
 ```
@@ -108,9 +108,14 @@ model, both fixed.
 cd compiler
 pip install -e ".[dev,codegen,lsp]"
 python -m pytest                     # 371 tests
-aegis audit examples --format table
+prahari audit examples --format table
 python eval/ablation.py              # regenerates the table above
 ```
+
+> If the `prahari` command is not found after installing, pip placed it in a
+> per-user scripts directory that is not on your PATH (it prints the location).
+> Add that directory to PATH, or use `python -m prahari.cli` wherever these docs
+> say `prahari`.
 
 No C toolchain is needed to *analyse* code — the preprocessor is self-contained.
 A linker is needed only to turn generated object files into executables.
@@ -124,7 +129,7 @@ npm run build
 npm start                            # http://127.0.0.1:3000
 ```
 
-Then open a `.c` file and run **Aegis: Audit Current File**
+Then open a `.c` file and run **Prahari: Audit Current File**
 (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>A</kbd>).
 
 No C++ toolchain or Visual Studio is needed, on Windows either. Theia's only
@@ -145,10 +150,10 @@ mark a path unexploitable, name a missing control.
 ```bash
 cp .env.example .env                  # then set OPENROUTER_API_KEY=sk-or-...
 cd compiler
-aegis ai --check                      # one request; verifies key and model
-aegis ai --models                     # what the key can reach
+prahari ai --check                      # one request; verifies key and model
+prahari ai --models                     # what the key can reach
 python eval/model_bench.py --yes      # which model judges these findings best
-aegis audit examples --adjudicate
+prahari audit examples --adjudicate
 ```
 
 OpenRouter (`sk-or-…`) and Anthropic (`sk-ant-…`) keys both work; the provider
@@ -188,8 +193,8 @@ Try the whole live path with no credential at all:
 
 ```bash
 python eval/mock_model.py --port 8787 &
-AEGIS_API_KEY=mock AEGIS_API_BASE=http://127.0.0.1:8787 \
-    aegis audit examples --adjudicate
+PRAHARI_API_KEY=mock PRAHARI_API_BASE=http://127.0.0.1:8787 \
+    prahari audit examples --adjudicate
 ```
 
 ---
@@ -201,11 +206,11 @@ AEGIS_API_KEY=mock AEGIS_API_BASE=http://127.0.0.1:8787 \
    │  ide/  Theia (TypeScript)                    │
    │    Monaco editor · findings panel · commands │
    └───────────────────┬──────────────────────────┘
-                       │  LSP over stdio  +  aegis/findings notifications
+                       │  LSP over stdio  +  prahari/findings notifications
    ┌───────────────────▼──────────────────────────┐
    │  compiler/  Python                           │
    │                                              │
-   │   preprocess → adapter → AegisAST            │
+   │   preprocess → adapter → PrahariAST            │
    │        → semantic → IR → CFG → SSA           │
    │              │                               │
    │              ├── dataflow framework ─────┐   │
@@ -237,15 +242,15 @@ server speaks standard LSP it already works in any other editor.
 
 | Command | What it shows |
 |---|---|
-| `aegis audit PATH` | findings, with full path traces |
-| `aegis ir PATH` | three-address code in SSA form |
-| `aegis cfg PATH --dot` | the control flow graph |
-| `aegis dataflow PATH` | reaching definitions, live variables, dead stores |
-| `aegis summaries PATH` | the call graph and interprocedural taint summaries |
-| `aegis build PATH --emit obj` | LLVM IR, assembly, or an object file |
-| `aegis slice PATH` | each finding as a minimal excerpt |
-| `aegis specs` | the taint specification table |
-| `aegis ai [--check]` | adjudication configuration |
+| `prahari audit PATH` | findings, with full path traces |
+| `prahari ir PATH` | three-address code in SSA form |
+| `prahari cfg PATH --dot` | the control flow graph |
+| `prahari dataflow PATH` | reaching definitions, live variables, dead stores |
+| `prahari summaries PATH` | the call graph and interprocedural taint summaries |
+| `prahari build PATH --emit obj` | LLVM IR, assembly, or an object file |
+| `prahari slice PATH` | each finding as a minimal excerpt |
+| `prahari specs` | the taint specification table |
+| `prahari ai [--check]` | adjudication configuration |
 
 Every phase is inspectable on its own, which is what makes the pipeline
 demonstrable rather than a black box that emits findings.

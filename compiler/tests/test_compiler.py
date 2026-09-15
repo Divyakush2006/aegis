@@ -9,8 +9,8 @@ from __future__ import annotations
 import networkx as nx
 import pytest
 
-from aegis.ir import instructions as I
-from aegis.ir.ssa import verify_ssa
+from prahari.ir import instructions as I
+from prahari.ir.ssa import verify_ssa
 
 
 class TestLowering:
@@ -120,7 +120,7 @@ class TestSSA:
             assert verify_ssa(cfg) == []
 
     def test_examples_are_well_formed(self, example_files, audit):
-        from aegis.index import build_index
+        from prahari.index import build_index
 
         index = build_index(example_files)
         violations = []

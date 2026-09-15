@@ -1,6 +1,6 @@
 # Security policy
 
-Aegis is a security tool, so it is held to the standard it applies to other
+Prahari is a security tool, so it is held to the standard it applies to other
 code. This page says how to report a vulnerability, what counts as one, and
 which design decisions exist to keep the tool itself from becoming a risk.
 
@@ -29,21 +29,21 @@ while a fix is prepared. Coordinated disclosure is appreciated.
 
 | In scope | Not a vulnerability |
 |---|---|
-| C input that makes Aegis execute code, write outside its output path, or hang indefinitely | A missed finding (false negative) or an extra one (false positive) — please open a normal issue with the C input; these are detection-quality bugs and are tracked in [docs/RESULTS.md](docs/RESULTS.md) |
+| C input that makes Prahari execute code, write outside its output path, or hang indefinitely | A missed finding (false negative) or an extra one (false positive) — please open a normal issue with the C input; these are detection-quality bugs and are tracked in [docs/RESULTS.md](docs/RESULTS.md) |
 | A credential appearing in any output, log, report, cache entry or error message | Constructs outside the documented C subset (see the README's *Scope*) |
 | The IDE backend reachable from anything other than the local machine | Rate limiting or unavailability of third-party free model endpoints |
 | An adjudication response able to create a finding, raise a confidence or change a severity | |
 
 The last row is a security property, not only a design preference: the
 invariants in [docs/AI.md](docs/AI.md) are what stop a manipulated model
-response from altering what Aegis reports.
+response from altering what Prahari reports.
 
 ## Security-relevant design
 
 **Credentials.** The API key is read only from the environment or a
-git-ignored `.env`; a key written into the committed `aegis.toml` is refused.
+git-ignored `.env`; a key written into the committed `prahari.toml` is refused.
 Output shows a 12-character SHA-256 fingerprint, never the key. Tests assert
-that no key appears in reports, `aegis ai` output, the IDE status command or
+that no key appears in reports, `prahari ai` output, the IDE status command or
 error messages, and CI fails if a mock credential leaks into any report.
 
 **What leaves the machine.** Without a key, nothing does: the compiler, every

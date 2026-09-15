@@ -16,7 +16,7 @@ pytest.importorskip("pygls", reason="pygls is not installed")
 
 from lsprotocol import types as lsp  # noqa: E402
 
-from aegis.server import lsp_server as S  # noqa: E402
+from prahari.server import lsp_server as S  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 EXAMPLES = ROOT / "examples"
@@ -28,7 +28,7 @@ def uri_of(name: str) -> str:
 
 @pytest.fixture
 def server():
-    instance = S.AegisLanguageServer()
+    instance = S.PrahariLanguageServer()
     yield instance
     instance.indexes.clear()
 
@@ -68,11 +68,11 @@ class TestDiagnostics:
         index = server.compile(uri_of("cmd_injection.c"), run_security=True)
         diagnostics = S._diagnostics_from(index)
         assert len(diagnostics) == len(index.findings) + len(index.diagnostics)
-        assert all(d.source == "aegis" for d in diagnostics)
+        assert all(d.source == "prahari" for d in diagnostics)
 
     def test_path_steps_ride_along_as_related_information(self, server):
         index = server.compile(uri_of("cmd_injection.c"), run_security=True)
-        security = [d for d in S._diagnostics_from(index) if d.code.startswith("aegis/")]
+        security = [d for d in S._diagnostics_from(index) if d.code.startswith("prahari/")]
         assert security
         assert all(d.related_information for d in security)
 

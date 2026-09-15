@@ -1,6 +1,6 @@
-# Aegis IDE
+# Prahari IDE
 
-A development environment for the Aegis compiler, built on
+A development environment for the Prahari compiler, built on
 [Eclipse Theia](https://theia-ide.org/).
 
 ## Why Theia rather than VS Code
@@ -18,11 +18,11 @@ That distinction is the reason it was chosen:
 | Branding, menus, shell | constrained | first-class |
 | Licence | MIT code, Microsoft-controlled project | EPL-2.0, Eclipse Foundation |
 
-Aegis needs a findings panel that renders multi-step dataflow traces, its own
+Prahari needs a findings panel that renders multi-step dataflow traces, its own
 backend service driving a Python compiler, and its own product identity. All
 three are ordinary work in Theia.
 
-Nothing upstream is patched — `aegis-ide` is an extension that depends on
+Nothing upstream is patched — `prahari-ide` is an extension that depends on
 Theia's public APIs. Upgrading Theia is a version bump.
 
 ## Layout
@@ -30,22 +30,22 @@ Theia's public APIs. Upgrading Theia is a version bump.
 ```
 ide/
 ├── package.json              npm workspace root
-├── aegis-ide/                the Aegis extension
+├── prahari-ide/                the Prahari extension
 │   └── src/
 │       ├── common/           the TypeScript ↔ Python contract
-│       │   └── aegis-protocol.ts
+│       │   └── prahari-protocol.ts
 │       ├── node/             backend: drives the Python language server
-│       │   ├── aegis-server.ts
-│       │   └── aegis-backend-module.ts
+│       │   ├── prahari-server.ts
+│       │   └── prahari-backend-module.ts
 │       └── browser/          frontend: panel, commands, markers
 │           ├── findings-widget.tsx
-│           ├── aegis-contribution.ts
-│           ├── aegis-frontend-module.ts
+│           ├── prahari-contribution.ts
+│           ├── prahari-frontend-module.ts
 │           └── style/index.css
 └── browser-app/              the assembled application
 ```
 
-`common/aegis-protocol.ts` is the entire language boundary. The frontend knows
+`common/prahari-protocol.ts` is the entire language boundary. The frontend knows
 about findings and path steps; it never learns what a lattice is.
 
 ## Build and run
@@ -75,12 +75,12 @@ C++ workload: the build finishes with 0 errors and the IDE serves on
 
 The extension searches upward for the `compiler/` directory — from its own
 location and from the working directory — and launches it as
-`python -m aegis.server.lsp_server`. Override with:
+`python -m prahari.server.lsp_server`. Override with:
 
 | Variable | Purpose |
 |---|---|
-| `AEGIS_PYTHON` | interpreter to use (default `python`) |
-| `AEGIS_COMPILER_ROOT` | path to the `compiler/` directory |
+| `PRAHARI_PYTHON` | interpreter to use (default `python`) |
+| `PRAHARI_COMPILER_ROOT` | path to the `compiler/` directory |
 | `OPENROUTER_API_KEY` | in the project-root `.env`; enables AI review. The IDE works fully without it |
 
 The compiler process the backend spawns reads the project-root `.env` itself,
@@ -92,12 +92,12 @@ fingerprint, not a credential.
 
 | Command | Binding | Behaviour |
 |---|---|---|
-| **Aegis: Audit Current File** | <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>A</kbd> | Full pipeline; populates the findings panel and the Problems view |
-| **Aegis: Show Findings Panel** | — | Toggles the panel |
-| **Aegis: Explain Function at Cursor** | — | CFG shape, call targets and interprocedural taint summary |
-| **Aegis: Show Generated LLVM IR** | — | Runs the backend over the open file |
-| **Aegis: Review Findings with AI** | — | Audits, then reviews each finding through the configured model |
-| **Aegis: AI Adjudication Status** | — | Model, endpoint and key fingerprint — never the key |
+| **Prahari: Audit Current File** | <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>A</kbd> | Full pipeline; populates the findings panel and the Problems view |
+| **Prahari: Show Findings Panel** | — | Toggles the panel |
+| **Prahari: Explain Function at Cursor** | — | CFG shape, call targets and interprocedural taint summary |
+| **Prahari: Show Generated LLVM IR** | — | Runs the backend over the open file |
+| **Prahari: Review Findings with AI** | — | Audits, then reviews each finding through the configured model |
+| **Prahari: AI Adjudication Status** | — | Model, endpoint and key fingerprint — never the key |
 
 Plus, live from the language server as you edit: type-checker diagnostics on
 save, hover showing declared types and taint summaries, and completion filtered
@@ -105,7 +105,7 @@ against the symbol table.
 
 C files open as **C**, not Plain Text: syntax highlighting, comment toggling,
 bracket matching and auto-closing come from a Monarch tokenizer the extension
-registers with Monaco itself (`aegis-ide/src/browser/c-language.ts`), because
+registers with Monaco itself (`prahari-ide/src/browser/c-language.ts`), because
 Theia ships Monaco without its bundled languages. It steps aside if a VS Code
 C/C++ extension or a later Theia release provides C.
 
@@ -124,7 +124,7 @@ offered — not ranked low, *absent*. A test asserts it
 
 LSP diagnostics can carry a message and a location; they cannot express "this
 value came from `argv`, crossed `strcpy`, then `build_command`, and arrived at
-`system`". So findings travel over a custom `aegis/findings` notification with
+`system`". So findings travel over a custom `prahari/findings` notification with
 the full trace, and the panel renders it:
 
 ```
@@ -149,7 +149,7 @@ a squiggle while a reviewer judging a report wants the trace.
 
 ## AI review in the panel
 
-**Aegis: Review Findings with AI** is a separate command from **Audit** on
+**Prahari: Review Findings with AI** is a separate command from **Audit** on
 purpose: an audit is local and free, while review costs a network round trip per
 finding. That should be a choice, not something that happens to a user.
 
@@ -185,12 +185,12 @@ command palette, audit, AI status and review — over the Chrome DevTools
 Protocol, and fails on any console error. It has caught problems no unit test
 could: an IDE without a working Go to File, and a findings header that read
 "0 findings" before any audit had run. It needs Chrome, Chromium or Edge
-(`AEGIS_CHROME` to point at one) and makes no model request that is not
+(`PRAHARI_CHROME` to point at one) and makes no model request that is not
 already cached.
 
 ## Extending it
 
-Add a command: register it in `aegis-contribution.ts`, add the corresponding
-`@server.command` handler in `compiler/src/aegis/server/lsp_server.py`, and
-declare its types in `common/aegis-protocol.ts`. Those three files are the whole
+Add a command: register it in `prahari-contribution.ts`, add the corresponding
+`@server.command` handler in `compiler/src/prahari/server/lsp_server.py`, and
+declare its types in `common/prahari-protocol.ts`. Those three files are the whole
 surface.

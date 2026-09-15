@@ -28,8 +28,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from aegis.analysis.specs import SpecTable  # noqa: E402
-from aegis.index import SemanticIndex, build_index  # noqa: E402
+from prahari.analysis.specs import SpecTable  # noqa: E402
+from prahari.index import SemanticIndex, build_index  # noqa: E402
 
 CWE_IN_NAME = re.compile(r"CWE[-_]?(\d+)")
 

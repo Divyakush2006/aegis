@@ -1,4 +1,4 @@
-# Consistent whitespace across editors, including the Aegis IDE.
+# Consistent whitespace across editors, including the Prahari IDE.
 root = true
 
 [*]

@@ -1,6 +1,6 @@
-# Contributing to Aegis
+# Contributing to Prahari
 
-Thank you for improving Aegis. This guide covers setting up, checking your
+Thank you for improving Prahari. This guide covers setting up, checking your
 change, and the handful of properties every change has to preserve.
 
 ## Layout
@@ -8,7 +8,7 @@ change, and the handful of properties every change has to preserve.
 ```
 compiler/   Python — front end, IR, SSA, dataflow analyses, detectors,
             SARIF, LLVM codegen, language server, AI gateways, evaluation
-ide/        TypeScript — the Eclipse Theia application and the Aegis extension
+ide/        TypeScript — the Eclipse Theia application and the Prahari extension
 docs/       architecture, results, AI design, attribution, planning record
 ```
 
@@ -26,6 +26,10 @@ npm run build
 npm start                     # http://127.0.0.1:3000
 ```
 
+If the `prahari` command is not on your PATH after installing, use
+`python -m prahari.cli` instead; pip installs console scripts into a per-user
+directory that is not always on PATH.
+
 AI review is optional. To enable it, copy `.env.example` to `.env` at the
 project root and set `OPENROUTER_API_KEY`. Nothing below requires a key.
 
@@ -41,7 +45,7 @@ Run what your change touches; CI runs all of it.
 | Ablation matrix | `python eval/ablation.py` |
 | Reproducible output | `python eval/check_determinism.py examples` and `--each eval/corpus` |
 | Model benchmark, offline | `python eval/model_bench.py --mock --yes` |
-| IDE typecheck and bundle | `npx tsc -p aegis-ide/tsconfig.json` and `npm run build` (from `ide/`) |
+| IDE typecheck and bundle | `npx tsc -p prahari-ide/tsconfig.json` and `npm run build` (from `ide/`) |
 | IDE ↔ compiler end to end | `node e2e-check.js` (from `ide/`) |
 | The IDE in a real browser | `npm start`, then `node browser-check.js` (from `ide/`; needs Chrome, Chromium or Edge) |
 

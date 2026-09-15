@@ -33,10 +33,10 @@ compiler/eval/ablation.json
 .env
 .env.*
 !.env.example
-aegis.toml
+prahari.toml
 
 # Adjudication cache
-.aegis-cache/
+.prahari-cache/
 .ruff_cache/
 
 # Model benchmark output

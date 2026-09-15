@@ -1,6 +1,6 @@
 """The free-tier guarantees: free-only models, per-use-case roles, and quotas.
 
-Aegis runs on free models with a daily request cap. That makes three properties
+Prahari runs on free models with a daily request cap. That makes three properties
 load-bearing rather than nice to have, and each is tested here without a key:
 
 * a non-free model id is refused before any request exists;
@@ -16,14 +16,14 @@ import time
 
 import pytest
 
-from aegis.ai.adjudicator import SYSTEM_PROMPT, VERDICT_SCHEMA, Adjudicator
-from aegis.ai.config import PROVIDER_DEFAULTS, AIConfig, is_free_model, load_config
-from aegis.ai.gateway import build_gateway
-from aegis.ai.gateway.http import QuotaExhausted, header, reset_epoch
-from aegis.ai.gateway.null import NullGateway
-from aegis.ai.gateway.openrouter import OpenRouterGateway
+from prahari.ai.adjudicator import SYSTEM_PROMPT, VERDICT_SCHEMA, Adjudicator
+from prahari.ai.config import PROVIDER_DEFAULTS, AIConfig, is_free_model, load_config
+from prahari.ai.gateway import build_gateway
+from prahari.ai.gateway.http import QuotaExhausted, header, reset_epoch
+from prahari.ai.gateway.null import NullGateway
+from prahari.ai.gateway.openrouter import OpenRouterGateway
 
-KEY = {"OPENROUTER_API_KEY": "sk-or-v1-test", "AEGIS_AI_CACHE": "0"}
+KEY = {"OPENROUTER_API_KEY": "sk-or-v1-test", "PRAHARI_AI_CACHE": "0"}
 
 
 def completion(model="thinkingmachines/inkling:free"):
@@ -88,21 +88,21 @@ class TestFreeOnly:
         assert config.free_only_violations() == []
 
     def test_a_paid_review_model_is_refused_before_any_request(self, tmp_path):
-        config = load_config(start=tmp_path, environ={**KEY, "AEGIS_MODEL": "openai/gpt-5"})
+        config = load_config(start=tmp_path, environ={**KEY, "PRAHARI_MODEL": "openai/gpt-5"})
         built = build_gateway(config)
         assert isinstance(built, NullGateway)
         assert "openai/gpt-5" in built.reason and ":free" in built.reason
 
     def test_a_paid_interactive_model_is_refused_too(self, tmp_path):
         config = load_config(
-            start=tmp_path, environ={**KEY, "AEGIS_MODEL_INTERACTIVE": "anthropic/claude-x"}
+            start=tmp_path, environ={**KEY, "PRAHARI_MODEL_INTERACTIVE": "anthropic/claude-x"}
         )
         assert isinstance(build_gateway(config), NullGateway)
 
     def test_a_paid_fallback_is_refused_too(self, tmp_path):
         config = load_config(
             start=tmp_path,
-            environ={**KEY, "AEGIS_MODEL_FALLBACKS": "poolside/laguna-s-2.1:free, x/paid"},
+            environ={**KEY, "PRAHARI_MODEL_FALLBACKS": "poolside/laguna-s-2.1:free, x/paid"},
         )
         built = build_gateway(config)
         assert isinstance(built, NullGateway) and "x/paid" in built.reason
@@ -115,12 +115,12 @@ class TestFreeOnly:
     def test_free_only_can_be_switched_off_explicitly(self, tmp_path):
         config = load_config(
             start=tmp_path,
-            environ={**KEY, "AEGIS_MODEL": "openai/gpt-5", "AEGIS_AI_FREE_ONLY": "0"},
+            environ={**KEY, "PRAHARI_MODEL": "openai/gpt-5", "PRAHARI_AI_FREE_ONLY": "0"},
         )
         assert isinstance(build_gateway(config), OpenRouterGateway)
 
     def test_the_refusal_reaches_the_adjudication_report(self, audit, tmp_path):
-        config = load_config(start=tmp_path, environ={**KEY, "AEGIS_MODEL": "openai/gpt-5"})
+        config = load_config(start=tmp_path, environ={**KEY, "PRAHARI_MODEL": "openai/gpt-5"})
         adjudicator = Adjudicator(build_gateway(config))
         assert adjudicator.enabled is False
         index = audit("cmd_injection.c")
@@ -162,13 +162,13 @@ class TestRoles:
 
     def test_fallbacks_parse_from_a_comma_list(self, tmp_path):
         config = load_config(
-            start=tmp_path, environ={**KEY, "AEGIS_MODEL_FALLBACKS": " a:free ,b:free,, "}
+            start=tmp_path, environ={**KEY, "PRAHARI_MODEL_FALLBACKS": " a:free ,b:free,, "}
         )
         assert config.fallback_models == ("a:free", "b:free")
         assert config.models_in_order()[1:] == ["a:free", "b:free"]
 
     def test_an_invalid_reasoning_effort_keeps_the_default(self, tmp_path):
-        config = load_config(start=tmp_path, environ={**KEY, "AEGIS_AI_REASONING": "extreme"})
+        config = load_config(start=tmp_path, environ={**KEY, "PRAHARI_AI_REASONING": "extreme"})
         assert config.reasoning_effort == "medium"
 
     def test_describe_names_both_roles_and_no_secret(self, tmp_path):
@@ -218,7 +218,7 @@ class TestPayload:
     def test_running_out_of_tokens_while_reasoning_is_explained(self):
         body = {"choices": [{"message": {"content": ""}, "finish_reason": "length"}]}
         instance = gateway((200, body, {}))
-        with pytest.raises(Exception, match="AEGIS_AI_MAX_TOKENS"):
+        with pytest.raises(Exception, match="PRAHARI_AI_MAX_TOKENS"):
             ask(instance)
 
     def test_the_factory_carries_roles_fallbacks_and_pacing(self, tmp_path):
@@ -318,8 +318,8 @@ class TestServerRole:
     def test_the_language_server_adjudicates_with_the_interactive_role(self, monkeypatch):
         from pathlib import Path
 
-        import aegis.ai.config as config_module
-        from aegis.server import lsp_server
+        import prahari.ai.config as config_module
+        from prahari.server import lsp_server
 
         seen = {}
 
@@ -419,7 +419,7 @@ class TestUpstreamErrors:
 
 class TestCacheVariants:
     def test_different_reasoning_effort_does_not_share_a_verdict(self, tmp_path):
-        from aegis.ai.gateway.cache import CachingGateway
+        from prahari.ai.gateway.cache import CachingGateway
 
         review = CachingGateway(gateway(model="m:free", reasoning_effort="medium"), tmp_path)
         interactive = CachingGateway(gateway(model="m:free", reasoning_effort="low"), tmp_path)
@@ -429,7 +429,7 @@ class TestCacheVariants:
         assert len(interactive.inner.transport.requests) == 1
 
     def test_the_same_role_is_still_served_from_cache(self, tmp_path):
-        from aegis.ai.gateway.cache import CachingGateway
+        from prahari.ai.gateway.cache import CachingGateway
 
         first = CachingGateway(gateway(model="m:free", reasoning_effort="low"), tmp_path)
         second = CachingGateway(gateway(model="m:free", reasoning_effort="low"), tmp_path)
@@ -439,6 +439,6 @@ class TestCacheVariants:
         assert second.inner.transport.requests == []
 
     def test_entries_without_a_variant_keep_their_old_keys(self):
-        from aegis.ai.gateway.cache import cache_key
+        from prahari.ai.gateway.cache import cache_key
 
         assert cache_key("m", "s", "u", None, 0.0) == cache_key("m", "s", "u", None, 0.0, "")

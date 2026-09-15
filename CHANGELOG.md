@@ -35,7 +35,7 @@ AI review.
 - Report-level gates for determinism and for the adjudication invariants.
 
 **IDE**
-- Eclipse Theia 1.75 application with an Aegis extension: findings panel with
+- Eclipse Theia 1.75 application with an Prahari extension: findings panel with
   navigable path traces, Problems-view markers, explain-function and LLVM IR
   commands.
 - Language server (pygls) providing diagnostics, symbol-table-filtered
@@ -47,7 +47,7 @@ AI review.
   any console error.
 - Builds and runs with no C++ toolchain: dependency install scripts are off, and
   a pure-JS `drivelist` is substituted where the native module is absent.
-- The Aegis shield icon, served as the application favicon.
+- The Prahari shield icon, served as the application favicon.
 
 **AI review (optional)**
 - Adjudication that can only demote a finding, enforced in code and tested.
@@ -56,7 +56,7 @@ AI review.
   content-addressed verdict cache.
 - Free-only mode for OpenRouter, per-use-case model roles (`review`,
   `interactive`) and a cross-provider fallback chain.
-- `aegis ai` status, live check and free-model catalogue; `eval/model_bench.py`
+- `prahari ai` status, live check and free-model catalogue; `eval/model_bench.py`
   ranks models against the corpus ground truth within the free daily quota.
 - Defaults chosen by published benchmarks, a live reachability probe and the
   ground-truth benchmark, with the evidence in `docs/AI.md`.
@@ -74,4 +74,4 @@ AI review.
 - The adjudication cache shared verdicts between roles running the same model
   at different reasoning effort.
 
-[0.1.0]: https://github.com/Divyakush2006/aegis/releases/tag/v0.1.0
+[0.1.0]: https://github.com/Divyakush2006/prahari/releases/tag/v0.1.0

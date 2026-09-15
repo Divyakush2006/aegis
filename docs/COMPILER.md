@@ -1,10 +1,10 @@
-# The Aegis compiler
+# The Prahari compiler
 
 > Sources live in [`compiler/`](../compiler). Run every command below from there.
 
 **A security-aware C compiler whose own dataflow analyses drive CWE detection.**
 
-Aegis compiles a subset of C through a complete front end — lexing and parsing,
+Prahari compiles a subset of C through a complete front end — lexing and parsing,
 semantic analysis, three-address IR, SSA construction, control flow graphs — and
 then reuses that machinery as a static application security testing engine. The
 compiler is not scaffolding around the analysis; the analysis *is* the compiler's
@@ -15,9 +15,9 @@ they render in VS Code, upload to GitHub code scanning, and interoperate with
 any tool that speaks the standard.
 
 ```console
-$ aegis audit examples/cmd_injection.c
+$ prahari audit examples/cmd_injection.c
 
-● CWE-78: OS Command Injection · ERROR · aegis/cwe78 · [3/3]
+● CWE-78: OS Command Injection · ERROR · prahari/cwe78 · [3/3]
   Untrusted data reaches system() at argument 0 after 4 propagation step(s)
   with no sanitisation on the path, allowing shell command injection.
 
@@ -44,10 +44,10 @@ $ aegis audit examples/cmd_injection.c
 
 A compiler already computes everything a precise security analysis needs —
 symbol resolution, SSA renaming, control flow, interprocedural dataflow. Tools
-that work on token streams or embeddings re-derive that information badly. Aegis
+that work on token streams or embeddings re-derive that information badly. Prahari
 keeps it.
 
-The consequence is visible in the trace above. Aegis does not report
+The consequence is visible in the trace above. Prahari does not report
 `system()` because the name looks dangerous. It reports it because it can show
 that the value arriving there originated in `argv`, survived a `strcpy`, crossed
 a function boundary whose summary says `param0 -> param1`, and met no sanitizer
@@ -75,10 +75,10 @@ executables.
 ## Use
 
 ```bash
-aegis audit src/                        # human-readable report
-aegis audit src/ --format table         # one line per finding, for CI logs
-aegis audit src/ --format sarif -o out.sarif
-aegis audit src/ --fail-on warning      # exit 1 on warnings too
+prahari audit src/                        # human-readable report
+prahari audit src/ --format table         # one line per finding, for CI logs
+prahari audit src/ --format sarif -o out.sarif
+prahari audit src/ --fail-on warning      # exit 1 on warnings too
 ```
 
 Exit codes: `0` clean · `1` findings at or above the threshold · `2` usage error.
@@ -87,14 +87,14 @@ Every compiler phase is inspectable on its own:
 
 | Command | Output |
 |---|---|
-| `aegis ir <path>` | three-address code in SSA form |
-| `aegis cfg <path> [--dot]` | basic blocks, edges, predecessors — or Graphviz |
-| `aegis dataflow <path>` | reaching definitions, live variables, dead stores |
-| `aegis summaries <path>` | call graph and interprocedural taint summaries |
-| `aegis slice <path>` | each finding as a minimal source-to-sink excerpt |
-| `aegis specs` | the taint specification table as JSON |
-| `aegis build <path> --emit llvm\|asm\|obj` | generate code via LLVM |
-| `aegis build <path> --run <fn>` | JIT-compile and call a function |
+| `prahari ir <path>` | three-address code in SSA form |
+| `prahari cfg <path> [--dot]` | basic blocks, edges, predecessors — or Graphviz |
+| `prahari dataflow <path>` | reaching definitions, live variables, dead stores |
+| `prahari summaries <path>` | call graph and interprocedural taint summaries |
+| `prahari slice <path>` | each finding as a minimal source-to-sink excerpt |
+| `prahari specs` | the taint specification table as JSON |
+| `prahari build <path> --emit llvm\|asm\|obj` | generate code via LLVM |
+| `prahari build <path> --run <fn>` | JIT-compile and call a function |
 
 ---
 
@@ -103,9 +103,9 @@ Every compiler phase is inspectable on its own:
 ```
   C source
      │  frontend/preprocess.py    self-contained cpp: includes, macros, comments
-     │  frontend/adapter.py       pycparser c_ast ──► AegisAST   ← the only reuse boundary
+     │  frontend/adapter.py       pycparser c_ast ──► PrahariAST   ← the only reuse boundary
      ▼
-  AegisAST
+  PrahariAST
      │  semantic/                 scope tree, type checking, diagnostics
      │  ir/lowering.py            three-address code, explicit control flow
      │  ir/cfg.py                 basic blocks, dominators, dominance frontiers
@@ -150,7 +150,7 @@ object code or JIT execution. Remove every analysis and a working compiler
 remains — literally:
 
 ```console
-$ aegis build prog.c --emit obj -o prog.o && gcc prog.o -o prog && ./prog
+$ prahari build prog.c --emit obj -o prog.o && gcc prog.o -o prog && ./prog
 fib: 0 1 1 2 3 5 8 13 21 34
 gcd(1071,462) = 21
 ```
@@ -206,7 +206,7 @@ against the project's own stated model (globals not carried through summaries;
 struct members loaded as values instead of passing the base object), both fixed.
 
 No comparison is made to IRIS, vEcho or any published tool: those run on
-real-world Java CVEs with frontier models, and Aegis runs on a synthetic C
+real-world Java CVEs with frontier models, and Prahari runs on a synthetic C
 subset. See [RESULTS.md §4](RESULTS.md) for what these numbers do and
 do not support.
 
@@ -235,7 +235,7 @@ Summary-based, not inlining. Each function is analysed once per parameter,
 producing a description of how taint flows through it:
 
 ```console
-$ aegis summaries examples/cmd_injection.c
+$ prahari summaries examples/cmd_injection.c
 build_command: param0 -> param1; param0 -> CWE-120 sink; no sanitisation
 ```
 
@@ -264,7 +264,7 @@ functions, indirect calls.
 - **`sizeof` is not evaluated**, so CWE-120 fires on the absence of a bound
   rather than on a comparison between a length and a capacity.
 
-`aegis audit` prints the exclusion count grouped by reason, and
+`prahari audit` prints the exclusion count grouped by reason, and
 `index.stats["unmodelled_externals"]` counts the external calls the analysis had
 no specification for — the honest measure of how much it had to guess.
 
@@ -272,7 +272,7 @@ no specification for — the honest measure of how much it had to guess.
 
 ## The model layer
 
-Aegis ships with **no language model configured and no network access.** The
+Prahari ships with **no language model configured and no network access.** The
 full pipeline — parse, IR, SSA, dataflow, taint, detectors, SARIF — runs and
 produces every finding above deterministically.
 
@@ -307,7 +307,7 @@ networkx's independent implementation on every test program, and asserts the SSA
 single-assignment invariant after every build.
 
 ```
-src/aegis/
+src/prahari/
 ├── frontend/    preprocess · adapter · ast_nodes      ← pycparser boundary
 ├── semantic/    symbol_table · types · checker
 ├── ir/          instructions · lowering · cfg · ssa

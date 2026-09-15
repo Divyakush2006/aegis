@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Declared, not defined: Aegis treats it as a sanitizer via the spec table. */
+/* Declared, not defined: Prahari treats it as a sanitizer via the spec table. */
 char *escape_shell(char *s);
 
 /* Bounded copy of a constant: no taint, no unbounded write. */

@@ -179,7 +179,7 @@ class TestInvariantChecker:
             "fingerprint": fingerprint,
             "severity": severity,
             "confidence": confidence,
-            "ruleId": "aegis/cwe78",
+            "ruleId": "prahari/cwe78",
         }
 
     def reports(self, base_findings, live_findings, stats=None):

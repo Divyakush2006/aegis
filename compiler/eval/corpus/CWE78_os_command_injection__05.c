@@ -9,7 +9,7 @@
 char *escape_shell(char *s);
 
 /* Opaque to the analysis, so no variant is folded away as unreachable. */
-extern int aegis_cond;
+extern int prahari_cond;
 
 static void sink_bad(char *c) { system(c); }
 static void relay_bad(char *in, char *out) { sprintf(out, "ping %s", in); }

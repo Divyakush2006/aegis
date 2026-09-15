@@ -182,7 +182,7 @@ the number look better and the tool worse.
 
 - **No comparison to published tools.** IRIS (45.8% detection / 84.8% FPR) and
   vEcho (65% / 59.8%) operate on real-world Java CVEs with frontier models.
-  Aegis runs on a synthetic C subset. Those figures are context for how hard the
+  Prahari runs on a synthetic C subset. Those figures are context for how hard the
   problem is, not a scoreboard.
 - **No claim about real-world code.** Every case here is within the documented
   subset. The exclusion log is empty on this corpus precisely because the corpus
@@ -232,6 +232,6 @@ Or, hermetically:
 
 ```bash
 # from the repository root
-docker build -t aegis .          # runs the test suite as part of the build
-docker run --rm -v "$PWD:/work" aegis audit /work --format sarif
+docker build -t prahari .          # runs the test suite as part of the build
+docker run --rm -v "$PWD:/work" prahari audit /work --format sarif
 ```

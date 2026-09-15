@@ -3,13 +3,13 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "aegis-compiler"
+name = "prahari-compiler"
 version = "0.1.0"
 description = "A security-aware C compiler whose dataflow analyses drive CWE detection"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-authors = [{ name = "Aegis" }]
+authors = [{ name = "Prahari" }]
 keywords = ["compiler", "static-analysis", "taint-analysis", "sarif", "security"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -31,7 +31,7 @@ dependencies = [
 # server are extras so the analysis core stays installable anywhere.
 #
 # Adjudication deliberately adds no dependency: the live gateway is one JSON
-# POST over urllib, so `pip install aegis-compiler` is enough to use a model.
+# POST over urllib, so `pip install prahari-compiler` is enough to use a model.
 
 [project.optional-dependencies]
 dev = ["pytest>=7.0", "pytest-cov>=4.0", "llvmlite>=0.42", "pygls>=2.0"]
@@ -39,11 +39,11 @@ codegen = ["llvmlite>=0.42"]
 lsp = ["pygls>=2.0"]
 
 [project.scripts]
-aegis = "aegis.cli:main"
-aegis-lsp = "aegis.server.lsp_server:main"
+prahari = "prahari.cli:main"
+prahari-lsp = "prahari.server.lsp_server:main"
 
 [project.urls]
-Homepage = "https://github.com/Divyakush2006/aegis"
+Homepage = "https://github.com/Divyakush2006/prahari"
 
 [tool.setuptools.packages.find]
 where = ["src"]

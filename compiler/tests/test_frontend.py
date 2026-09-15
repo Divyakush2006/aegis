@@ -1,10 +1,10 @@
-"""Front end: preprocessing, parsing, and the AegisAST boundary."""
+"""Front end: preprocessing, parsing, and the PrahariAST boundary."""
 from __future__ import annotations
 
 import pytest
 
-from aegis.frontend.adapter import parse_source
-from aegis.frontend.preprocess import preprocess, strip_comments
+from prahari.frontend.adapter import parse_source
+from prahari.frontend.preprocess import preprocess, strip_comments
 
 
 class TestPreprocessor:
@@ -55,7 +55,7 @@ class TestPreprocessor:
 
 
 class TestAdapter:
-    def test_produces_aegis_ast_not_pycparser_nodes(self):
+    def test_produces_prahari_ast_not_pycparser_nodes(self):
         program, _pre, _ = parse_source("int f(int a) { return a + 1; }", "t.c")
         func = program.function("f")
         assert type(func).__module__.endswith("ast_nodes")

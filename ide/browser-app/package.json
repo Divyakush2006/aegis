@@ -2,7 +2,7 @@
   "name": "browser-app",
   "version": "0.1.0",
   "private": true,
-  "description": "The Aegis IDE browser application",
+  "description": "The Prahari IDE browser application",
   "license": "MIT",
   "dependencies": {
     "@theia/core": "1.75.0",
@@ -19,7 +19,7 @@
     "@theia/search-in-workspace": "1.75.0",
     "@theia/terminal": "1.75.0",
     "@theia/workspace": "1.75.0",
-    "aegis-ide": "0.1.0"
+    "prahari-ide": "0.1.0"
   },
   "devDependencies": {
     "@theia/cli": "1.75.0"
@@ -34,7 +34,7 @@
     "target": "browser",
     "frontend": {
       "config": {
-        "applicationName": "Aegis IDE",
+        "applicationName": "Prahari IDE",
         "preferences": {
           "files.enableTrash": false,
           "editor.renderWhitespace": "selection"

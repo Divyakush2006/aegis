@@ -1,4 +1,4 @@
-# Aegis — reproducible evaluation environment for the compiler.
+# Prahari — reproducible evaluation environment for the compiler.
 #
 # No C toolchain is installed on purpose: the preprocessor is self-contained,
 # and proving that in the image is stronger than claiming it in the README.
@@ -6,7 +6,7 @@
 # separately in ide/README.md.
 FROM python:3.12-slim
 
-LABEL org.opencontainers.image.title="Aegis" \
+LABEL org.opencontainers.image.title="Prahari" \
       org.opencontainers.image.description="Security-aware C compiler with SARIF output" \
       org.opencontainers.image.licenses="MIT"
 
@@ -30,12 +30,12 @@ RUN python eval/ablation.py
 
 # Adjudication is configured at run time, never baked in:
 #
-#   docker run -e AEGIS_API_KEY=sk-ant-... aegis audit /work --adjudicate
+#   docker run -e PRAHARI_API_KEY=sk-ant-... prahari audit /work --adjudicate
 #
 # With no key the image behaves exactly as it does above -- the audit runs and
 # reports the compiler's own verdicts. A key is never copied into a layer, and
 # the image needs no network for anything else it does.
 
 WORKDIR /work
-ENTRYPOINT ["aegis"]
+ENTRYPOINT ["prahari"]
 CMD ["audit", "/work", "--format", "table"]

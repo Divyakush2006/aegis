@@ -1,10 +1,10 @@
-# AEGIS — Repository Catalog
+# PRAHARI — Repository Catalog
 
 Every repo worth knowing about for a security-aware compiler with an AI-native IDE.
 
 **Verification status.** Entries marked ✅ were confirmed during research for this project. Entries marked ⚪ are from general knowledge of long-standing projects — stable and almost certainly correct, but check the URL before relying on one. Star counts and dates move; treat them as rough.
 
-**How to read the Relevance column.** `CORE` = ships in Aegis. `READ` = study the code, don't import. `BENCH` = evaluation. `CONTEXT` = know it exists so you can position against it.
+**How to read the Relevance column.** `CORE` = ships in Prahari. `READ` = study the code, don't import. `BENCH` = evaluation. `CONTEXT` = know it exists so you can position against it.
 
 ---
 
@@ -233,7 +233,7 @@ Decide in week 11. All of these speak OpenAI-compatible APIs, so your gateway wo
 
 ---
 
-## 13. Prior Work Closest to Aegis
+## 13. Prior Work Closest to Prahari
 
 Nothing occupies the exact intersection. These are the nearest neighbours, and the gap between them is your contribution.
 
@@ -246,7 +246,7 @@ Nothing occupies the exact intersection. These are the nearest neighbours, and t
 | codebadger | ✗ | wraps Joern | ✅ | ✗ | No compiler, no IDE |
 | CodeChecker | ✗ | wraps others | ✗ | web UI | No AI, no compiler |
 | Continue / Cline | ✗ | ✗ | ✅ | ✅ | No program analysis at all |
-| **Aegis** | ✅ | ✅ | ✅ | ✅ | — |
+| **Prahari** | ✅ | ✅ | ✅ | ✅ | — |
 
 The honest framing: each of the four columns individually is well-trodden. **The combination, and specifically the claim that a compiler's own dataflow framework is sufficient grounding for a small local model, is not.** That is what your ablation table tests.
 

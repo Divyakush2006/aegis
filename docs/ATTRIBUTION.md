@@ -1,6 +1,6 @@
 # Attribution
 
-This document records what Aegis reuses, what it reads, and what it writes from
+This document records what Prahari reuses, what it reads, and what it writes from
 scratch. It is maintained from the first commit rather than assembled at the
 end, and it is the authoritative statement of the reused/original boundary.
 
@@ -11,13 +11,13 @@ AST is original.**
 
 ## 1. Direct dependencies — code shipped and executed
 
-| Component | Version | Licence | What Aegis uses it for |
+| Component | Version | Licence | What Prahari uses it for |
 |---|---|---|---|
 | [pycparser](https://github.com/eliben/pycparser) | ≥ 2.21 | BSD-3-Clause | C99 parsing only. Its `c_ast` is consumed by `frontend/adapter.py` and by nothing else. |
 | [networkx](https://github.com/networkx/networkx) | ≥ 3.0 | BSD-3-Clause | Graph storage, `immediate_dominators`, `condensation`, `topological_sort`, `shortest_path`. |
-| [llvmlite](https://github.com/numba/llvmlite) | ≥ 0.42 | BSD-2-Clause | LLVM IR construction, object emission and MCJIT, used by `codegen/llvm_emitter.py`. The emitter itself — the mapping from Aegis three-address IR to LLVM IR — is original. |
+| [llvmlite](https://github.com/numba/llvmlite) | ≥ 0.42 | BSD-2-Clause | LLVM IR construction, object emission and MCJIT, used by `codegen/llvm_emitter.py`. The emitter itself — the mapping from Prahari three-address IR to LLVM IR — is original. |
 | [pygls](https://github.com/openlawlibrary/pygls) | ≥ 2.0 | Apache-2.0 | LSP framework. Supplies the protocol plumbing; every handler in `server/lsp_server.py` is original. |
-| [Eclipse Theia](https://github.com/eclipse-theia/theia) | 1.75.0 | EPL-2.0 | IDE platform for `ide/`: the Monaco editor, shell, DI container and RPC. The Aegis extension — findings panel, commands, backend service — is original. |
+| [Eclipse Theia](https://github.com/eclipse-theia/theia) | 1.75.0 | EPL-2.0 | IDE platform for `ide/`: the Monaco editor, shell, DI container and RPC. The Prahari extension — findings panel, commands, backend service — is original. |
 | [pytest](https://github.com/pytest-dev/pytest) | ≥ 7.0 | MIT | Test runner (development only). |
 
 Licences are BSD-2-Clause, BSD-3-Clause, Apache-2.0, EPL-2.0 and MIT. All are
@@ -26,7 +26,7 @@ strong-copyleft code is imported.
 
 **On EPL-2.0 (Theia).** The Eclipse Public License is file-level copyleft:
 modifications to Theia's own files would have to be released under EPL-2.0.
-Aegis does not modify Theia. `ide/aegis-ide/` is a separate extension that
+Prahari does not modify Theia. `ide/prahari-ide/` is a separate extension that
 *depends on* Theia through its published APIs, which EPL-2.0 explicitly permits
 under a different licence. This is also the practical argument for building a
 Theia extension rather than forking an IDE: nothing upstream is patched, so
@@ -40,11 +40,11 @@ original.
 
 ### The pycparser boundary, precisely
 
-`src/aegis/frontend/adapter.py` is the **only** module that imports pycparser.
-It converts `c_ast` nodes into the AegisAST node set defined in
+`src/prahari/frontend/adapter.py` is the **only** module that imports pycparser.
+It converts `c_ast` nodes into the PrahariAST node set defined in
 `frontend/ast_nodes.py`. Every subsequent phase — semantic analysis, IR
 lowering, CFG, SSA, all four dataflow analyses, detectors, reporting — operates
-on AegisAST and the IR, never on pycparser types.
+on PrahariAST and the IR, never on pycparser types.
 
 Two consequences:
 
@@ -57,7 +57,7 @@ lowering pass in `adapter.py` is written from scratch.
 
 ### The Theia boundary
 
-`ide/aegis-ide/` contributes to Theia; it does not alter it. Three integration
+`ide/prahari-ide/` contributes to Theia; it does not alter it. Three integration
 points, all public API:
 
 * `theiaExtensions` in `package.json` — the documented way to register a
@@ -71,7 +71,7 @@ backend service and the stylesheet are written from scratch.
 ### What pycparser does *not* provide
 
 pycparser does not preprocess. The conventional workaround is `gcc -E` plus
-pycparser's `fake_libc_include` headers; Aegis instead implements
+pycparser's `fake_libc_include` headers; Prahari instead implements
 `frontend/preprocess.py` from scratch — include elision, object-like macro
 expansion, conditional compilation, comment stripping and line-continuation
 splicing, all line-number-preserving — so the tool runs with no C toolchain and
@@ -85,7 +85,7 @@ evaluation is reproducible across platforms. The `--cpp` flag restores the
 No code from any project in this section is present in this repository. They
 were consulted for algorithm structure and design decisions.
 
-| Project | Licence | What was read | Where it influenced Aegis |
+| Project | Licence | What was read | Where it influenced Prahari |
 |---|---|---|---|
 | [PyT](https://github.com/python-security/pyt) | copyleft — **read only** | CFG construction, fixpoint iteration, taint source/sink/sanitizer modelling, vulnerability reporting | General shape of `analysis/taint.py` and the specification-table approach in `analysis/specs.py` |
 | [ShivyC](https://github.com/ShivamSarodia/ShivyC) | MIT | Symbol table design, IL structure | `semantic/symbol_table.py`, `ir/instructions.py` |
@@ -134,8 +134,8 @@ cross-checked against networkx's independent implementation in
 Everything below is written from scratch for this project:
 
 - `frontend/preprocess.py` — preprocessor, comment scanner, continuation splicer
-- `frontend/ast_nodes.py` — the AegisAST node set and type model
-- `frontend/adapter.py` — `c_ast` → AegisAST lowering
+- `frontend/ast_nodes.py` — the PrahariAST node set and type model
+- `frontend/adapter.py` — `c_ast` → PrahariAST lowering
 - `semantic/` — scope tree, type compatibility rules, type checker
 - `ir/instructions.py` — three-address instruction set with use/def/rename protocol
 - `ir/lowering.py` — AST → TAC, including short-circuit, loop, and switch lowering
@@ -159,7 +159,7 @@ Everything below is written from scratch for this project:
 - `codegen/llvm_emitter.py` — three-address IR to LLVM IR, object and JIT output
 - `server/lsp_server.py` — diagnostics, symbol-table completion, hover, commands
 - `report/` — SARIF emitter, console renderer
-- `ide/aegis-ide/` — the entire Theia extension: protocol, backend service,
+- `ide/prahari-ide/` — the entire Theia extension: protocol, backend service,
   findings panel, commands, keybindings, stylesheet
 - `index.py`, `cli.py`, the full test suite, and all example programs
 

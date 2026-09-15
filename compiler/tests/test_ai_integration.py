@@ -20,11 +20,11 @@ from pathlib import Path
 
 import pytest
 
-from aegis.ai.adjudicator import Adjudicator
-from aegis.ai.config import load_config
-from aegis.ai.gateway import build_gateway
-from aegis.ai.gateway.anthropic import AnthropicGateway, GatewayError
-from aegis.ai.gateway.cache import CachingGateway
+from prahari.ai.adjudicator import Adjudicator
+from prahari.ai.config import load_config
+from prahari.ai.gateway import build_gateway
+from prahari.ai.gateway.anthropic import AnthropicGateway, GatewayError
+from prahari.ai.gateway.cache import CachingGateway
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "eval"))
 from mock_model import Handler, serve  # noqa: E402
@@ -53,10 +53,10 @@ def failing_endpoint():
 
 def env_for(endpoint: str, cache: Path) -> dict:
     return {
-        "AEGIS_API_KEY": "mock-key",
-        "AEGIS_API_BASE": endpoint,
-        "AEGIS_AI_CACHE_DIR": str(cache),
-        "AEGIS_AI_RETRIES": "1",
+        "PRAHARI_API_KEY": "mock-key",
+        "PRAHARI_API_BASE": endpoint,
+        "PRAHARI_AI_CACHE_DIR": str(cache),
+        "PRAHARI_AI_RETRIES": "1",
     }
 
 
@@ -107,10 +107,10 @@ class TestLivePath:
         config = load_config(
             start=tmp_path,
             environ={
-                "AEGIS_API_KEY": "mock-key",
-                "AEGIS_API_BASE": "http://127.0.0.1:1",
-                "AEGIS_AI_RETRIES": "0",
-                "AEGIS_AI_TIMEOUT": "2",
+                "PRAHARI_API_KEY": "mock-key",
+                "PRAHARI_API_BASE": "http://127.0.0.1:1",
+                "PRAHARI_AI_RETRIES": "0",
+                "PRAHARI_AI_TIMEOUT": "2",
             },
         )
         index = audit("cmd_injection.c")
@@ -127,9 +127,9 @@ class TestLivePath:
         config = load_config(
             start=tmp_path,
             environ={
-                "AEGIS_API_KEY": "mock-key",
-                "AEGIS_API_BASE": failing_endpoint,
-                "AEGIS_AI_RETRIES": "1",
+                "PRAHARI_API_KEY": "mock-key",
+                "PRAHARI_API_BASE": failing_endpoint,
+                "PRAHARI_AI_RETRIES": "1",
             },
         )
         index = audit("cmd_injection.c")
@@ -149,11 +149,11 @@ class TestCommandLine:
         env = dict(os.environ)
         env["PYTHONPATH"] = str(ROOT / "src")
         env["PYTHONIOENCODING"] = "utf-8"
-        for key in ("AEGIS_API_KEY", "ANTHROPIC_API_KEY", "AEGIS_API_BASE"):
+        for key in ("PRAHARI_API_KEY", "ANTHROPIC_API_KEY", "PRAHARI_API_BASE"):
             env.pop(key, None)
         env.update(env_extra or {})
         return subprocess.run(
-            [sys.executable, "-m", "aegis.cli", *args],
+            [sys.executable, "-m", "prahari.cli", *args],
             capture_output=True,
             text=True,
             env=env,
@@ -204,10 +204,10 @@ class TestCommandLine:
         result = self.run(
             "ai", "--check",
             env_extra={
-                "AEGIS_API_KEY": "mock-key",
-                "AEGIS_API_BASE": "http://127.0.0.1:1",
-                "AEGIS_AI_RETRIES": "0",
-                "AEGIS_AI_TIMEOUT": "2",
+                "PRAHARI_API_KEY": "mock-key",
+                "PRAHARI_API_BASE": "http://127.0.0.1:1",
+                "PRAHARI_AI_RETRIES": "0",
+                "PRAHARI_AI_TIMEOUT": "2",
             },
         )
         assert result.returncode == 1

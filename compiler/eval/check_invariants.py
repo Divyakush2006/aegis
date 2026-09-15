@@ -21,8 +21,8 @@ Confidence is compared in its *effective* form -- an absent value means the
 analysis made no claim, which the reporting layer treats as 1.0. Reading it any
 other way would let a demotion from "unstated" to 0.9 register as an increase.
 
-    aegis audit examples --format json -o static.json
-    aegis audit examples --adjudicate --format json -o adjudicated.json
+    prahari audit examples --format json -o static.json
+    prahari audit examples --adjudicate --format json -o adjudicated.json
     python eval/check_invariants.py static.json adjudicated.json
 """
 from __future__ import annotations
@@ -51,7 +51,7 @@ def check(baseline: dict, adjudicated: dict) -> list[str]:
         failures.append("the baseline audit reported no findings at all")
     if baseline.get("adjudication"):
         failures.append(
-            "the baseline is itself an adjudicated run; use a plain `aegis audit` "
+            "the baseline is itself an adjudicated run; use a plain `prahari audit` "
             "so the comparison measures what the compiler alone reported"
         )
 

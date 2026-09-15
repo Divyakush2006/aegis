@@ -1,0 +1,249 @@
+/* Prahari findings panel.
+   Colours come from Theia's theme variables so the panel follows light, dark
+   and high-contrast themes without a second palette to maintain. */
+
+.prahari-findings {
+    overflow: auto;
+    font-size: var(--theia-ui-font-size1);
+}
+
+.prahari-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* --- header --- */
+
+.prahari-header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--theia-editorWidget-border);
+    background: var(--theia-editorWidget-background);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.prahari-header-title {
+    font-weight: 600;
+}
+
+.prahari-header-breakdown,
+.prahari-header-revision {
+    color: var(--theia-descriptionForeground);
+    font-size: var(--theia-ui-font-size0);
+}
+
+.prahari-header-revision {
+    margin-left: auto;
+    font-family: var(--theia-code-font-family);
+}
+
+/* --- empty states --- */
+
+.prahari-empty {
+    padding: 16px 12px;
+    color: var(--theia-descriptionForeground);
+}
+
+.prahari-empty.prahari-clean {
+    color: var(--theia-successBackground, var(--theia-descriptionForeground));
+}
+
+.prahari-empty.prahari-error {
+    color: var(--theia-errorForeground);
+}
+
+/* --- finding --- */
+
+.prahari-finding {
+    border-bottom: 1px solid var(--theia-editorWidget-border);
+}
+
+.prahari-finding-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.prahari-finding-head:hover {
+    background: var(--theia-list-hoverBackground);
+}
+
+.prahari-finding-title {
+    font-weight: 600;
+}
+
+.prahari-finding-where {
+    margin-left: auto;
+    color: var(--theia-descriptionForeground);
+    font-family: var(--theia-code-font-family);
+    font-size: var(--theia-ui-font-size0);
+}
+
+.severity-error .prahari-sev { color: var(--theia-editorError-foreground); }
+.severity-warning .prahari-sev { color: var(--theia-editorWarning-foreground); }
+.severity-note .prahari-sev { color: var(--theia-editorInfo-foreground); }
+
+.prahari-finding-body {
+    padding: 0 12px 12px 30px;
+}
+
+.prahari-message {
+    margin: 0 0 10px;
+    color: var(--theia-foreground);
+}
+
+/* --- path trace --- */
+
+.prahari-trace {
+    border-left: 2px solid var(--theia-editorWidget-border);
+    padding-left: 10px;
+    margin-bottom: 10px;
+}
+
+.prahari-step {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 2px 4px;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+.prahari-step:hover {
+    background: var(--theia-list-hoverBackground);
+}
+
+.prahari-step-glyph {
+    font-size: 10px;
+}
+
+.kind-source .prahari-step-glyph { color: var(--theia-editorWarning-foreground); }
+.kind-sink .prahari-step-glyph { color: var(--theia-editorError-foreground); }
+.kind-propagate .prahari-step-glyph { color: var(--theia-descriptionForeground); }
+
+.prahari-step-kind {
+    font-size: var(--theia-ui-font-size0);
+    letter-spacing: 0.04em;
+    width: 74px;
+    color: var(--theia-descriptionForeground);
+}
+
+.prahari-step-line {
+    font-family: var(--theia-code-font-family);
+    color: var(--theia-descriptionForeground);
+    min-width: 32px;
+    text-align: right;
+}
+
+.prahari-step-snippet {
+    font-family: var(--theia-code-font-family);
+    white-space: pre;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.prahari-step-why {
+    padding-left: 96px;
+    color: var(--theia-descriptionForeground);
+    font-size: var(--theia-ui-font-size0);
+}
+
+.prahari-step-arrow {
+    padding-left: 4px;
+    color: var(--theia-editorWidget-border);
+    line-height: 1.1;
+}
+
+/* --- metadata --- */
+
+.prahari-meta {
+    display: flex;
+    gap: 10px;
+    padding: 2px 0;
+}
+
+.prahari-meta-label {
+    font-size: var(--theia-ui-font-size0);
+    letter-spacing: 0.04em;
+    color: var(--theia-descriptionForeground);
+    min-width: 132px;
+    flex-shrink: 0;
+}
+
+/* --- exclusions --- */
+
+.prahari-exclusions {
+    padding: 10px 12px;
+    color: var(--theia-descriptionForeground);
+    font-size: var(--theia-ui-font-size0);
+}
+
+.prahari-exclusions-title {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+/* --- Adjudication ------------------------------------------------------- *
+ * A model's verdict is styled as an annotation on the compiler's finding,
+ * never as the finding itself: the badge sits beside the title rather than
+ * replacing it, and a dismissal fades the row instead of hiding it.
+ */
+
+.prahari-header-adjudication {
+    margin-left: auto;
+    padding: 0 8px;
+    font-size: 11px;
+    color: var(--theia-descriptionForeground);
+    white-space: nowrap;
+}
+
+.prahari-header-adjudication.failed {
+    color: var(--theia-editorWarning-foreground);
+}
+
+.prahari-verdict {
+    flex: 0 0 auto;
+    margin-left: 6px;
+    padding: 0 6px;
+    border-radius: 9px;
+    border: 1px solid transparent;
+    font-size: 10px;
+    line-height: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.prahari-verdict.exploitable {
+    color: var(--theia-editorError-foreground);
+    border-color: var(--theia-editorError-foreground);
+}
+
+.prahari-verdict.dismissed {
+    color: var(--theia-descriptionForeground);
+    border-color: var(--theia-panel-border);
+}
+
+.prahari-verdict.unavailable {
+    color: var(--theia-editorWarning-foreground);
+    border-color: var(--theia-editorWarning-foreground);
+}
+
+.prahari-finding:has(.prahari-verdict.dismissed) .prahari-finding-title {
+    opacity: 0.65;
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+}
+
+.prahari-adjudication .prahari-meta-value em {
+    font-style: normal;
+    font-weight: 600;
+    color: var(--theia-textLink-foreground);
+}

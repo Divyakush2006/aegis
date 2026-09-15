@@ -9,11 +9,11 @@
 char *escape_shell(char *s);
 
 /* Opaque to the analysis, so no variant is folded away as unreachable. */
-extern int aegis_cond;
+extern int prahari_cond;
 
 void bad(void)
 {
-    if (aegis_cond > 1) {
+    if (prahari_cond > 1) {
         char data[64];
         fgets(data, 64, stdin);
         printf(data);
@@ -22,7 +22,7 @@ void bad(void)
 
 void goodG2B(void)
 {
-    if (aegis_cond > 1) {
+    if (prahari_cond > 1) {
         char data[64];
         strcpy(data, "constant");
         printf(data);
@@ -31,7 +31,7 @@ void goodG2B(void)
 
 void goodB2G(void)
 {
-    if (aegis_cond > 1) {
+    if (prahari_cond > 1) {
         char data[64];
         fgets(data, 64, stdin);
         printf("%s", data);

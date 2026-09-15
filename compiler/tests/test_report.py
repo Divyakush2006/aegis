@@ -6,12 +6,12 @@ from pathlib import Path
 
 import pytest
 
-from aegis.ai.adjudicator import Adjudicator
-from aegis.ai.gateway.null import NullGateway
-from aegis.ai.slicer import slice_finding
-from aegis.analysis.detectors import DEFAULT_REGISTRY
-from aegis.cli import main
-from aegis.report import console, sarif
+from prahari.ai.adjudicator import Adjudicator
+from prahari.ai.gateway.null import NullGateway
+from prahari.ai.slicer import slice_finding
+from prahari.analysis.detectors import DEFAULT_REGISTRY
+from prahari.cli import main
+from prahari.report import console, sarif
 
 EXPECTED = {
     "cmd_injection.c": {"CWE-78", "CWE-120"},
@@ -42,20 +42,20 @@ class TestSemanticIndex:
         assert stats["ssa_violations"] == 0
 
     def test_findings_are_ranked_errors_first(self, example_files):
-        from aegis.index import build_index
+        from prahari.index import build_index
 
         findings = build_index(example_files).findings
         severities = [f.severity.value for f in findings]
         assert severities == sorted(severities, key=lambda s: {"error": 0, "warning": 1}[s])
 
     def test_detectors_cover_every_emitted_cwe(self, example_files):
-        from aegis.index import build_index
+        from prahari.index import build_index
 
         for finding in build_index(example_files).findings:
             assert DEFAULT_REGISTRY.get(finding.path.cwe) is not None
 
     def test_ablation_switches_disable_analyses(self, example_files):
-        from aegis.index import build_index
+        from prahari.index import build_index
 
         no_taint = build_index(example_files, run_taint=False)
         assert all(f.path.cwe.startswith("CWE-4") for f in no_taint.findings)
@@ -66,7 +66,7 @@ class TestSemanticIndex:
 class TestSarif:
     @pytest.fixture
     def log(self, example_files):
-        from aegis.index import build_index
+        from prahari.index import build_index
 
         return sarif.to_sarif(build_index(example_files), DEFAULT_REGISTRY, base=Path.cwd())
 
@@ -103,7 +103,7 @@ class TestSarif:
             assert result["level"] in {"error", "warning", "note", "none"}
 
     def test_fingerprints_are_stable_across_runs(self, example_files):
-        from aegis.index import build_index
+        from prahari.index import build_index
 
         first = {f.path.fingerprint for f in build_index(example_files).findings}
         second = {f.path.fingerprint for f in build_index(example_files).findings}

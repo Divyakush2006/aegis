@@ -9,11 +9,11 @@
 char *escape_shell(char *s);
 
 /* Opaque to the analysis, so no variant is folded away as unreachable. */
-extern int aegis_cond;
+extern int prahari_cond;
 
 void bad(void)
 {
-    { int _i; for (_i = 0; _i < 2; _i++) { if (aegis_cond == _i) {
+    { int _i; for (_i = 0; _i < 2; _i++) { if (prahari_cond == _i) {
         char *p;
         p = (char *) malloc(64);
         if (p == 0) { return; }
@@ -24,7 +24,7 @@ void bad(void)
 
 void goodG2B(void)
 {
-    { int _i; for (_i = 0; _i < 2; _i++) { if (aegis_cond == _i) {
+    { int _i; for (_i = 0; _i < 2; _i++) { if (prahari_cond == _i) {
         char *p;
         p = (char *) malloc(64);
         if (p == 0) { return; }

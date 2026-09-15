@@ -14,14 +14,14 @@ from pathlib import Path
 
 import pytest
 
-from aegis.ai.adjudicator import SYSTEM_PROMPT, VERDICT_SCHEMA, Adjudicator
-from aegis.ai.catalogue import ModelInfo, fetch_models, rank_for_adjudication
-from aegis.ai.config import load_config, read_env_file
-from aegis.ai.gateway import build_gateway
-from aegis.ai.gateway.anthropic import AnthropicGateway
-from aegis.ai.gateway.cache import CachingGateway
-from aegis.ai.gateway.http import GatewayError
-from aegis.ai.gateway.openrouter import DEFAULT_BASE_URL, DEFAULT_MODEL, OpenRouterGateway
+from prahari.ai.adjudicator import SYSTEM_PROMPT, VERDICT_SCHEMA, Adjudicator
+from prahari.ai.catalogue import ModelInfo, fetch_models, rank_for_adjudication
+from prahari.ai.config import load_config, read_env_file
+from prahari.ai.gateway import build_gateway
+from prahari.ai.gateway.anthropic import AnthropicGateway
+from prahari.ai.gateway.cache import CachingGateway
+from prahari.ai.gateway.http import GatewayError
+from prahari.ai.gateway.openrouter import DEFAULT_BASE_URL, DEFAULT_MODEL, OpenRouterGateway
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "eval"))
 from mock_model import Handler, serve  # noqa: E402
@@ -223,7 +223,7 @@ class TestErrors:
 
 class TestProviderSelection:
     def test_an_openrouter_key_selects_openrouter(self, tmp_path):
-        config = load_config(start=tmp_path, environ={"AEGIS_API_KEY": "sk-or-v1-abc"})
+        config = load_config(start=tmp_path, environ={"PRAHARI_API_KEY": "sk-or-v1-abc"})
         assert config.provider == "openrouter"
         assert config.base_url == DEFAULT_BASE_URL
         assert config.model == DEFAULT_MODEL
@@ -235,21 +235,21 @@ class TestProviderSelection:
         assert "OPENROUTER_API_KEY" in config.sources["provider"]
 
     def test_an_anthropic_key_selects_anthropic(self, tmp_path):
-        config = load_config(start=tmp_path, environ={"AEGIS_API_KEY": "sk-ant-xyz"})
+        config = load_config(start=tmp_path, environ={"PRAHARI_API_KEY": "sk-ant-xyz"})
         assert config.provider == "anthropic"
         assert config.base_url == "https://api.anthropic.com"
 
     def test_an_explicit_provider_wins_over_detection(self, tmp_path):
         config = load_config(
             start=tmp_path,
-            environ={"AEGIS_API_KEY": "sk-or-v1-abc", "AEGIS_AI_PROVIDER": "anthropic"},
+            environ={"PRAHARI_API_KEY": "sk-or-v1-abc", "PRAHARI_AI_PROVIDER": "anthropic"},
         )
         assert config.provider == "anthropic"
 
     def test_an_explicit_model_is_kept(self, tmp_path):
         config = load_config(
             start=tmp_path,
-            environ={"OPENROUTER_API_KEY": "sk-or-v1-abc", "AEGIS_MODEL": "openai/gpt-4o"},
+            environ={"OPENROUTER_API_KEY": "sk-or-v1-abc", "PRAHARI_MODEL": "openai/gpt-4o"},
         )
         assert config.model == "openai/gpt-4o"
 
@@ -263,7 +263,7 @@ class TestProviderSelection:
     def test_the_cache_wraps_it(self, tmp_path):
         config = load_config(
             start=tmp_path,
-            environ={"OPENROUTER_API_KEY": "sk-or-v1-abc", "AEGIS_AI_CACHE_DIR": str(tmp_path)},
+            environ={"OPENROUTER_API_KEY": "sk-or-v1-abc", "PRAHARI_AI_CACHE_DIR": str(tmp_path)},
         )
         built = build_gateway(config)
         assert isinstance(built, CachingGateway)
@@ -271,7 +271,7 @@ class TestProviderSelection:
         assert Adjudicator(built).enabled is True
 
     def test_anthropic_still_builds(self, tmp_path):
-        config = load_config(start=tmp_path, environ={"AEGIS_API_KEY": "sk-ant-xyz"})
+        config = load_config(start=tmp_path, environ={"PRAHARI_API_KEY": "sk-ant-xyz"})
         config.cache_enabled = False
         assert isinstance(build_gateway(config), AnthropicGateway)
 
@@ -297,19 +297,19 @@ class TestEnvFile:
 
     def test_the_file_can_be_switched_off(self, tmp_path):
         (tmp_path / ".env").write_text("OPENROUTER_API_KEY=sk-or-v1-file\n", encoding="utf-8")
-        config = load_config(start=tmp_path, environ={"AEGIS_NO_DOTENV": "1"})
+        config = load_config(start=tmp_path, environ={"PRAHARI_NO_DOTENV": "1"})
         assert config.configured is False
 
     def test_the_suite_itself_never_reads_a_developer_dotenv(self):
         import os
 
-        assert os.environ.get("AEGIS_NO_DOTENV") == "1"
+        assert os.environ.get("PRAHARI_NO_DOTENV") == "1"
         assert not os.environ.get("OPENROUTER_API_KEY")
 
     def test_settings_other_than_the_key_come_from_the_file_too(self, tmp_path):
         (tmp_path / ".env").write_text(
-            "OPENROUTER_API_KEY=sk-or-v1-x\nAEGIS_MODEL=google/gemini-2.5-pro\n"
-            "AEGIS_AI_MAX_REQUESTS=12\n",
+            "OPENROUTER_API_KEY=sk-or-v1-x\nPRAHARI_MODEL=google/gemini-2.5-pro\n"
+            "PRAHARI_AI_MAX_REQUESTS=12\n",
             encoding="utf-8",
         )
         config = load_config(start=tmp_path, environ={})
@@ -326,7 +326,7 @@ class TestEnvFile:
         path.write_text(
             "# a comment\n"
             'export OPENROUTER_API_KEY="sk-or-v1-quoted"\n'
-            "AEGIS_MODEL=openai/gpt-4o   # trailing comment\n"
+            "PRAHARI_MODEL=openai/gpt-4o   # trailing comment\n"
             "SINGLE='single quoted'\n"
             "EMPTY=\n"
             "NOT A VALID LINE\n"
@@ -336,7 +336,7 @@ class TestEnvFile:
         )
         values = read_env_file(path)
         assert values["OPENROUTER_API_KEY"] == "sk-or-v1-quoted"
-        assert values["AEGIS_MODEL"] == "openai/gpt-4o"
+        assert values["PRAHARI_MODEL"] == "openai/gpt-4o"
         assert values["SINGLE"] == "single quoted"
         assert values["EMPTY"] == ""
         assert "" not in values
@@ -463,9 +463,9 @@ def openrouter_config(endpoint, tmp_path):
         start=tmp_path,
         environ={
             "OPENROUTER_API_KEY": "sk-or-v1-mock",
-            "AEGIS_API_BASE": endpoint,
-            "AEGIS_AI_CACHE": "0",
-            "AEGIS_AI_RETRIES": "0",
+            "PRAHARI_API_BASE": endpoint,
+            "PRAHARI_AI_CACHE": "0",
+            "PRAHARI_AI_RETRIES": "0",
         },
     )
 

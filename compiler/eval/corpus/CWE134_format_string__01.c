@@ -9,7 +9,7 @@
 char *escape_shell(char *s);
 
 /* Opaque to the analysis, so no variant is folded away as unreachable. */
-extern int aegis_cond;
+extern int prahari_cond;
 
 void bad(void)
 {

@@ -54,7 +54,7 @@ jobs:
         run: pip install -e ".[lsp,codegen]"
       - run: npm install --no-audit --no-fund
       - name: Typecheck and build the extension
-        run: npx tsc -p aegis-ide/tsconfig.json
+        run: npx tsc -p prahari-ide/tsconfig.json
       - name: Build the Theia application
         # Proves the whole IDE bundles on a clean runner with no C++ toolchain:
         # dependency install scripts are off (ide/.npmrc) and the build falls
@@ -104,29 +104,29 @@ jobs:
 
       - name: Baseline — what the compiler alone reports
         # The comparison below is only meaningful against an unadjudicated run.
-        run: aegis audit examples --format json -o static.json || true
+        run: prahari audit examples --format json -o static.json || true
 
       - name: Unconfigured install is a working install
         # The central guarantee: with no key set the audit still runs and
         # reports the compiler's own verdicts rather than failing.
         run: |
-          aegis ai
-          aegis audit examples --adjudicate --format json -o unconfigured.json || true
+          prahari ai
+          prahari audit examples --adjudicate --format json -o unconfigured.json || true
           python eval/check_invariants.py static.json unconfigured.json
 
       - name: The live HTTP path, against a deterministic mock endpoint
         # Exercises configuration, the gateway, real sockets, tool-use parsing
         # and clamping -- everything except the model itself.
         env:
-          AEGIS_API_KEY: mock-key
-          AEGIS_API_BASE: http://127.0.0.1:8787
+          PRAHARI_API_KEY: mock-key
+          PRAHARI_API_BASE: http://127.0.0.1:8787
         run: |
           python eval/mock_model.py --port 8787 &
           for _ in $(seq 20); do
             curl -sf -o /dev/null http://127.0.0.1:8787/v1/messages && break || sleep 0.5
           done
-          aegis ai --check
-          aegis audit examples --adjudicate --format json -o adjudicated.json || true
+          prahari ai --check
+          prahari audit examples --adjudicate --format json -o adjudicated.json || true
 
       - name: The model may demote, never promote or invent
         run: python eval/check_invariants.py static.json adjudicated.json
@@ -141,15 +141,15 @@ jobs:
         # set here, which is exactly how a user's .env will look.
         env:
           OPENROUTER_API_KEY: sk-or-v1-mock
-          AEGIS_API_BASE: http://127.0.0.1:8788
+          PRAHARI_API_BASE: http://127.0.0.1:8788
         run: |
           python eval/mock_model.py --port 8788 &
           for _ in $(seq 20); do
             curl -sf -o /dev/null -X POST http://127.0.0.1:8788/chat/completions && break || sleep 0.5
           done
-          aegis ai | grep -q "provider           openrouter"
-          aegis ai --check
-          aegis audit examples --adjudicate --format json -o openrouter.json || true
+          prahari ai | grep -q "provider           openrouter"
+          prahari ai --check
+          prahari audit examples --adjudicate --format json -o openrouter.json || true
           python eval/check_invariants.py static.json openrouter.json
           if grep -r "sk-or-v1-mock" openrouter.json; then
             echo "a credential leaked into the report" && exit 1
@@ -171,18 +171,18 @@ jobs:
       - name: Audit the example corpus
         # These examples contain deliberate vulnerabilities, so a non-zero exit
         # is expected here; the SARIF upload is the artefact that matters.
-        run: aegis audit examples --format sarif -o aegis.sarif || true
+        run: prahari audit examples --format sarif -o prahari.sarif || true
       - uses: actions/upload-artifact@v4
         with:
-          name: aegis-sarif
-          path: compiler/aegis.sarif
+          name: prahari-sarif
+          path: compiler/prahari.sarif
       - uses: github/codeql-action/upload-sarif@v3
         # Code scanning on a private repository needs GitHub Advanced Security.
         # The SARIF report is still produced and kept as the artifact above.
         if: ${{ !github.event.repository.private }}
         with:
-          sarif_file: compiler/aegis.sarif
-          category: aegis
+          sarif_file: compiler/prahari.sarif
+          category: prahari
 
   determinism:
     name: Reproducible output

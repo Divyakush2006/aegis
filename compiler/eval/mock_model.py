@@ -7,8 +7,8 @@ tool-use parsing, clamping, reporting -- can be exercised with no credential and
 no network:
 
     $ python eval/mock_model.py &
-    $ AEGIS_API_KEY=mock AEGIS_API_BASE=http://127.0.0.1:8787 \\
-          aegis audit examples --adjudicate
+    $ PRAHARI_API_KEY=mock PRAHARI_API_BASE=http://127.0.0.1:8787 \\
+          prahari audit examples --adjudicate
 
 It answers both API shapes -- Anthropic's ``/v1/messages`` and the OpenAI
 ``/chat/completions`` that OpenRouter serves -- so either gateway can be pointed
@@ -208,7 +208,7 @@ def main() -> None:  # pragma: no cover - manual use
     print(f"mock model endpoint on {base}")
     print("  Anthropic shape:  POST /v1/messages")
     print("  OpenAI shape:     POST /chat/completions")
-    print(f"  AEGIS_API_KEY=mock AEGIS_API_BASE={base} aegis audit examples --adjudicate")
+    print(f"  PRAHARI_API_KEY=mock PRAHARI_API_BASE={base} prahari audit examples --adjudicate")
     try:
         threading.Event().wait()
     except KeyboardInterrupt:

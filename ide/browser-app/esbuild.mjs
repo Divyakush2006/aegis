@@ -1,5 +1,5 @@
 /**
- * Aegis IDE build configuration.
+ * Prahari IDE build configuration.
  *
  * Theia generates this file once and then leaves it alone, which makes it the
  * sanctioned place to adjust the build without patching Theia. It is Theia's
@@ -36,12 +36,12 @@ function drivelistFallback() {
         nativeBuilt = false;
     }
     return {
-        name: 'aegis-drivelist-fallback',
+        name: 'prahari-drivelist-fallback',
         setup(build) {
             if (nativeBuilt) {
                 return;
             }
-            console.log('aegis: drivelist has no native binary here; bundling shims/drivelist.js instead');
+            console.log('prahari: drivelist has no native binary here; bundling shims/drivelist.js instead');
             build.onResolve({ filter: /^drivelist$/ }, () => ({
                 path: path.join(here, 'shims', 'drivelist.js')
             }));
@@ -53,7 +53,7 @@ function drivelistFallback() {
 nodeOptions.plugins = [drivelistFallback(), ...(nodeOptions.plugins ?? [])];
 
 /**
- * Serve the Aegis icon at /favicon.ico.
+ * Serve the Prahari icon at /favicon.ico.
  *
  * The backend serves `lib/frontend` as the web root, and every browser asks for
  * `/favicon.ico` on load; without this the tab has no icon and the console

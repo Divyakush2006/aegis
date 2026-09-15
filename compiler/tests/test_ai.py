@@ -17,12 +17,12 @@ from pathlib import Path
 
 import pytest
 
-from aegis.ai.adjudicator import Adjudicator, SYSTEM_PROMPT, VERDICT_SCHEMA, dismissed
-from aegis.ai.config import AIConfig, load_config
-from aegis.ai.gateway import build_gateway
-from aegis.ai.gateway.anthropic import AnthropicGateway, GatewayError, _extract_verdict
-from aegis.ai.gateway.cache import CachingGateway, cache_key
-from aegis.ai.gateway.null import NullGateway
+from prahari.ai.adjudicator import Adjudicator, SYSTEM_PROMPT, VERDICT_SCHEMA, dismissed
+from prahari.ai.config import AIConfig, load_config
+from prahari.ai.gateway import build_gateway
+from prahari.ai.gateway.anthropic import AnthropicGateway, GatewayError, _extract_verdict
+from prahari.ai.gateway.cache import CachingGateway, cache_key
+from prahari.ai.gateway.null import NullGateway
 
 
 # --- helpers ----------------------------------------------------------------
@@ -100,28 +100,28 @@ class TestConfig:
         assert config.configured is False
         assert config.enabled is False
 
-    def test_aegis_key_wins_over_the_generic_one(self, tmp_path):
+    def test_prahari_key_wins_over_the_generic_one(self, tmp_path):
         config = load_config(
             start=tmp_path,
-            environ={"AEGIS_API_KEY": "a", "ANTHROPIC_API_KEY": "b"},
+            environ={"PRAHARI_API_KEY": "a", "ANTHROPIC_API_KEY": "b"},
         )
         assert config.api_key == "a"
-        assert config.sources["api_key"] == "AEGIS_API_KEY"
+        assert config.sources["api_key"] == "PRAHARI_API_KEY"
 
     def test_falls_back_to_the_generic_key(self, tmp_path):
         config = load_config(start=tmp_path, environ={"ANTHROPIC_API_KEY": "b"})
         assert config.api_key == "b"
 
     def test_describe_never_contains_the_key(self, tmp_path):
-        config = load_config(start=tmp_path, environ={"AEGIS_API_KEY": "super-secret-value"})
+        config = load_config(start=tmp_path, environ={"PRAHARI_API_KEY": "super-secret-value"})
         rendered = json.dumps(config.describe())
         assert "super-secret-value" not in rendered
         assert config.key_fingerprint != "-"
         assert len(config.key_fingerprint) == 12
 
     def test_a_key_in_a_config_file_is_refused(self, tmp_path):
-        (tmp_path / "aegis.toml").write_text(
-            '[tool.aegis.ai]\napi_key = "leaked"\nmodel = "from-file"\n', encoding="utf-8"
+        (tmp_path / "prahari.toml").write_text(
+            '[tool.prahari.ai]\napi_key = "leaked"\nmodel = "from-file"\n', encoding="utf-8"
         )
         config = load_config(start=tmp_path, environ={})
         # The model is honoured; the credential is not, because the file is the
@@ -131,10 +131,10 @@ class TestConfig:
         assert "ignored" in config.sources["api_key"]
 
     def test_environment_overrides_the_file(self, tmp_path):
-        (tmp_path / "aegis.toml").write_text(
-            '[tool.aegis.ai]\nmodel = "from-file"\n', encoding="utf-8"
+        (tmp_path / "prahari.toml").write_text(
+            '[tool.prahari.ai]\nmodel = "from-file"\n', encoding="utf-8"
         )
-        config = load_config(start=tmp_path, environ={"AEGIS_MODEL": "from-env"})
+        config = load_config(start=tmp_path, environ={"PRAHARI_MODEL": "from-env"})
         assert config.model == "from-env"
 
 
@@ -194,7 +194,7 @@ class TestAnthropicGateway:
             ask(instance)
         assert caught.value.status == 401
         assert caught.value.retryable is False
-        assert "AEGIS_API_KEY" in str(caught.value)
+        assert "PRAHARI_API_KEY" in str(caught.value)
         assert len(instance.transport.requests) == 1
 
     def test_an_unknown_model_reports_the_detail(self):

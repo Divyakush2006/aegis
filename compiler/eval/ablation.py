@@ -27,11 +27,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from aegis.analysis.detectors import DEFAULT_REGISTRY  # noqa: E402
-from aegis.analysis.specs import SpecTable  # noqa: E402
-from aegis.diagnostics import Finding, Severity, TaintPath  # noqa: E402
-from aegis.index import build_index  # noqa: E402
-from aegis.ir import instructions as I  # noqa: E402
+from prahari.analysis.detectors import DEFAULT_REGISTRY  # noqa: E402
+from prahari.analysis.specs import SpecTable  # noqa: E402
+from prahari.diagnostics import Finding, Severity, TaintPath  # noqa: E402
+from prahari.index import build_index  # noqa: E402
+from prahari.ir import instructions as I  # noqa: E402
 
 from harness import (  # noqa: E402
     CaseResult,
@@ -167,8 +167,8 @@ def score(corpus: Path, config: Configuration) -> RunResult:
         if config.pattern_only:
             index.findings = pattern_findings(index)
         if config.adjudicate:
-            from aegis.ai.adjudicator import Adjudicator
-            from aegis.ai.gateway.null import NullGateway
+            from prahari.ai.adjudicator import Adjudicator
+            from prahari.ai.gateway.null import NullGateway
 
             Adjudicator(NullGateway()).run(index)
             index.findings = [f for f in index.findings if f.exploitable is not False]

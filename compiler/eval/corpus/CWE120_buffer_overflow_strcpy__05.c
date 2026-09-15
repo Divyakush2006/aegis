@@ -9,7 +9,7 @@
 char *escape_shell(char *s);
 
 /* Opaque to the analysis, so no variant is folded away as unreachable. */
-extern int aegis_cond;
+extern int prahari_cond;
 
 static void sink_bad(char *d, char *s) { strcpy(d, s); }
 static void sink_goodG2B(char *d, char *s) { strcpy(d, s); }

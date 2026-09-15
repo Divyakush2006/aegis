@@ -1,4 +1,4 @@
-# AEGIS — Build Plan v2
+# PRAHARI — Build Plan v2
 
 **Security-Aware Compiler + AI-Native IDE**
 
@@ -43,7 +43,7 @@ The distinction matters concretely:
 | License | MIT code, Microsoft-controlled project | Eclipse Public License, vendor-neutral under Eclipse Foundation |
 | Desktop + browser | Separate paths | Single technology stack |
 
-Theia also hosts VS Code extensions, supports LSP and DAP, and ships Monaco, so you inherit the entire VS Code look, feel and muscle memory. A demo of Aegis will be indistinguishable from VS Code at a glance, which is exactly the impression you want, while every panel and command remains yours to change.
+Theia also hosts VS Code extensions, supports LSP and DAP, and ships Monaco, so you inherit the entire VS Code look, feel and muscle memory. A demo of Prahari will be indistinguishable from VS Code at a glance, which is exactly the impression you want, while every panel and command remains yours to change.
 
 ### 2.1 Theia AI solves the model-agnostic requirement
 
@@ -96,12 +96,12 @@ You therefore do not have to design a provider abstraction, commit to a model no
 
 ```bash
 # Monorepo
-mkdir aegis && cd aegis && git init
+mkdir prahari && cd prahari && git init
 
 # --- IDE ---
 npm install -g yo generator-theia-extension
 yo theia-extension            # choose: "Hello World"
-# rename generated extension → aegis-ide
+# rename generated extension → prahari-ide
 
 # --- Compiler ---
 mkdir -p compiler && cd compiler
@@ -118,7 +118,7 @@ pycparser is a parser, not a compiler. You take its AST and nothing else.
 ```python
 from pycparser import c_parser, c_ast
 
-class AegisFrontend:
+class PrahariFrontend:
     def parse(self, source: str) -> c_ast.FileAST:
         return c_parser.CParser().parse(source)
 ```
@@ -128,7 +128,7 @@ class AegisFrontend:
 Three practical notes:
 
 - pycparser does not preprocess. Run `gcc -E` first, or use its `fake_libc_include` headers. Juliet cases need this.
-- Write an adapter (`frontend/adapter.py`) that maps `c_ast` to your own `AegisAST` node classes. If you later have to hand-write a parser, only this file changes.
+- Write an adapter (`frontend/adapter.py`) that maps `c_ast` to your own `PrahariAST` node classes. If you later have to hand-write a parser, only this file changes.
 - Keep source positions. Every IR instruction must carry `(file, line, col)` or the findings panel cannot navigate.
 
 ### Phase 2 — Compiler core (Weeks 2–6)
@@ -146,12 +146,12 @@ Taint lattice, transfer functions, detectors, call graph summaries. Reference: P
 ```python
 from pygls.server import LanguageServer
 
-server = LanguageServer("aegis", "v1")
+server = LanguageServer("prahari", "v1")
 
 @server.feature("textDocument/didSave")
 def on_save(ls, params): ...          # type errors → diagnostics
 
-@server.command("aegis.audit")
+@server.command("prahari.audit")
 def audit(ls, args): ...              # full pipeline → findings
 ```
 
@@ -161,9 +161,9 @@ Theia's LSP integration reuses Microsoft's `vscode-languageclient`, with `vscode
 
 Three Theia contributions:
 
-1. `AegisFindingsWidget` — the path-trace tree view
-2. `AuditCommandContribution` — "Aegis: Audit Project" in the command palette
-3. `AegisAgent` — a Theia AI agent for the assistant
+1. `PrahariFindingsWidget` — the path-trace tree view
+2. `AuditCommandContribution` — "Prahari: Audit Project" in the command palette
+3. `PrahariAgent` — a Theia AI agent for the assistant
 
 ### Phase 6 — Model binding (Week 11, deferred by design)
 
@@ -177,7 +177,7 @@ Pick a model. Configure it in Theia AI preferences. No code changes.
 graph TB
     subgraph TH["Theia IDE (TypeScript / Electron + Browser)"]
         MON[Monaco Editor]
-        FW[Aegis Findings Widget]
+        FW[Prahari Findings Widget]
         CH[Theia AI Chat View]
         CMD[Command Contributions]
         TAI[Theia AI Framework]
@@ -189,14 +189,14 @@ graph TB
         WS[JSON-RPC over WebSocket]
     end
 
-    subgraph LS["Aegis Language Server (Python / pygls)"]
+    subgraph LS["Prahari Language Server (Python / pygls)"]
         H1[Diagnostics Handler]
         H2[Audit Command Handler]
         H3[Completion Handler]
     end
 
-    subgraph CC["Aegis Compiler Core (Python)"]
-        FE["Front End<br/>pycparser → AegisAST"]
+    subgraph CC["Prahari Compiler Core (Python)"]
+        FE["Front End<br/>pycparser → PrahariAST"]
         ST[Symbol Table + Type Check]
         IR[Three-Address IR]
         SSA[SSA Construction]
@@ -272,7 +272,7 @@ The contract between compiler and AI. Serialized to Postgres, cached per project
 @dataclass
 class SemanticIndex:
     revision:    str                      # content hash
-    ast:         AegisAST
+    ast:         PrahariAST
     symbols:     SymbolTable
     ir:          dict[str, list[Instr]]   # function → SSA instructions
     cfg:         dict[str, CFG]
@@ -341,7 +341,7 @@ sequenceDiagram
     participant A as AI Layer
     participant G as Model Gateway
 
-    U->>T: Command: Aegis Audit Project
+    U->>T: Command: Prahari Audit Project
     T->>L: workspace/executeCommand
     L->>C: build_index(project)
     C->>C: parse → symbols → IR → SSA → CFG
@@ -360,7 +360,7 @@ sequenceDiagram
     end
     A->>A: rank by confidence × severity
     A-->>L: Finding[]
-    L-->>T: custom notification aegis/findings
+    L-->>T: custom notification prahari/findings
     T-->>U: Findings widget populated
 ```
 
@@ -381,21 +381,21 @@ The spec cache is what keeps audit latency flat as projects grow. Each library f
 ## 7. Repository Structure
 
 ```
-aegis/
+prahari/
 ├── ide/                                  # Theia — TypeScript
-│   ├── aegis-ide/
+│   ├── prahari-ide/
 │   │   ├── src/
 │   │   │   ├── browser/
-│   │   │   │   ├── aegis-frontend-module.ts
+│   │   │   │   ├── prahari-frontend-module.ts
 │   │   │   │   ├── findings-widget.tsx        # path-trace tree
 │   │   │   │   ├── findings-contribution.ts
 │   │   │   │   ├── audit-command.ts
 │   │   │   │   ├── severity-decorator.ts      # editor gutter marks
 │   │   │   │   └── ai/
-│   │   │   │       ├── aegis-agent.ts         # Theia AI agent
+│   │   │   │       ├── prahari-agent.ts         # Theia AI agent
 │   │   │   │       └── prompt-templates.ts
 │   │   │   ├── node/
-│   │   │   │   ├── aegis-backend-module.ts
+│   │   │   │   ├── prahari-backend-module.ts
 │   │   │   │   └── language-server-contribution.ts
 │   │   │   └── common/
 │   │   │       └── protocol.ts                # shared types
@@ -405,9 +405,9 @@ aegis/
 │   └── package.json
 │
 ├── compiler/                             # Python
-│   ├── aegis/
+│   ├── prahari/
 │   │   ├── frontend/
-│   │   │   ├── adapter.py                # pycparser → AegisAST
+│   │   │   ├── adapter.py                # pycparser → PrahariAST
 │   │   │   ├── ast_nodes.py
 │   │   │   └── preprocess.py
 │   │   ├── semantic/
@@ -485,7 +485,7 @@ aegis/
 | Week | Deliverable | Gate |
 |---|---|---|
 | 0 | Theia scaffold + Python env | `yarn start:browser` opens custom IDE |
-| 1 | pycparser adapter → AegisAST | Juliet subset parses; exclusions logged |
+| 1 | pycparser adapter → PrahariAST | Juliet subset parses; exclusions logged |
 | 2 | Symbol table + type checker | Rejects type errors |
 | 3 | Three-address IR lowering | IR dump for all test programs |
 | 4 | CFG + dominator tree | Correct on nested loops |
