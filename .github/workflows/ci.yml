@@ -1,0 +1,211 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write   # required to upload SARIF to code scanning
+
+defaults:
+  run:
+    working-directory: compiler
+
+jobs:
+  compiler:
+    name: Compiler (Python ${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: compiler/pyproject.toml
+      - run: pip install -e ".[dev,codegen,lsp]"
+      - name: Test suite
+        run: python -m pytest -v
+
+  ide:
+    name: IDE (TypeScript)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ide
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: ide/package-lock.json
+      - name: Install the compiler (the IDE drives it)
+        working-directory: compiler
+        run: pip install -e ".[lsp,codegen]"
+      - run: npm install --no-audit --no-fund
+      - name: Typecheck and build the extension
+        run: npx tsc -p aegis-ide/tsconfig.json
+      - name: Build the Theia application
+        # Proves the whole IDE bundles on a clean runner with no C++ toolchain:
+        # dependency install scripts are off (ide/.npmrc) and the build falls
+        # back to a pure-JS drivelist where the native module was not built.
+        run: npm run build
+      - name: End-to-end — Node drives the Python language server
+        run: node e2e-check.js
+
+  evaluation:
+    name: Ablation matrix
+    runs-on: ubuntu-latest
+    needs: compiler
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: compiler/pyproject.toml
+      - run: pip install -e ".[dev,codegen]"
+      - name: Corpus regenerates identically
+        run: |
+          python eval/corpus_gen.py
+          git diff --exit-code eval/corpus \
+            || (echo "corpus generation is not deterministic" && exit 1)
+      - name: Detection rate and false positive rate
+        run: |
+          python eval/harness.py
+          python eval/harness.py eval/corpus_hard
+      - name: Ablation matrix
+        run: python eval/ablation.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ablation
+          path: compiler/eval/ablation.json
+
+  adjudication:
+    name: Adjudication (no credential required)
+    runs-on: ubuntu-latest
+    needs: compiler
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e .
+
+      - name: Baseline — what the compiler alone reports
+        # The comparison below is only meaningful against an unadjudicated run.
+        run: aegis audit examples --format json -o static.json || true
+
+      - name: Unconfigured install is a working install
+        # The central guarantee: with no key set the audit still runs and
+        # reports the compiler's own verdicts rather than failing.
+        run: |
+          aegis ai
+          aegis audit examples --adjudicate --format json -o unconfigured.json || true
+          python eval/check_invariants.py static.json unconfigured.json
+
+      - name: The live HTTP path, against a deterministic mock endpoint
+        # Exercises configuration, the gateway, real sockets, tool-use parsing
+        # and clamping -- everything except the model itself.
+        env:
+          AEGIS_API_KEY: mock-key
+          AEGIS_API_BASE: http://127.0.0.1:8787
+        run: |
+          python eval/mock_model.py --port 8787 &
+          for _ in $(seq 20); do
+            curl -sf -o /dev/null http://127.0.0.1:8787/v1/messages && break || sleep 0.5
+          done
+          aegis ai --check
+          aegis audit examples --adjudicate --format json -o adjudicated.json || true
+
+      - name: The model may demote, never promote or invent
+        run: python eval/check_invariants.py static.json adjudicated.json
+
+      - name: No credential may appear in any output
+        run: |
+          if grep -r "mock-key" static.json unconfigured.json adjudicated.json; then
+            echo "a credential leaked into the report" && exit 1
+          fi
+      - name: The OpenRouter path, against the same mock endpoint
+        # The key prefix alone selects the provider: no provider variable is
+        # set here, which is exactly how a user's .env will look.
+        env:
+          OPENROUTER_API_KEY: sk-or-v1-mock
+          AEGIS_API_BASE: http://127.0.0.1:8788
+        run: |
+          python eval/mock_model.py --port 8788 &
+          for _ in $(seq 20); do
+            curl -sf -o /dev/null -X POST http://127.0.0.1:8788/chat/completions && break || sleep 0.5
+          done
+          aegis ai | grep -q "provider           openrouter"
+          aegis ai --check
+          aegis audit examples --adjudicate --format json -o openrouter.json || true
+          python eval/check_invariants.py static.json openrouter.json
+          if grep -r "sk-or-v1-mock" openrouter.json; then
+            echo "a credential leaked into the report" && exit 1
+          fi
+
+      - name: Model benchmark plumbing (offline)
+        run: python eval/model_bench.py --mock --yes --output bench.json
+
+  security-scan:
+    name: Self-scan and publish SARIF
+    runs-on: ubuntu-latest
+    needs: compiler
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e .
+      - name: Audit the example corpus
+        # These examples contain deliberate vulnerabilities, so a non-zero exit
+        # is expected here; the SARIF upload is the artefact that matters.
+        run: aegis audit examples --format sarif -o aegis.sarif || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aegis-sarif
+          path: compiler/aegis.sarif
+      - uses: github/codeql-action/upload-sarif@v3
+        # Code scanning on a private repository needs GitHub Advanced Security.
+        # The SARIF report is still produced and kept as the artifact above.
+        if: ${{ !github.event.repository.private }}
+        with:
+          sarif_file: compiler/aegis.sarif
+          category: aegis
+
+  determinism:
+    name: Reproducible output
+    runs-on: ubuntu-latest
+    needs: compiler
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e .
+      - name: Two runs must agree
+        # No model is configured, so the pipeline is deterministic by
+        # construction. This job is what keeps it that way.
+        #
+        # A raw byte diff would compare wall-clock timings too and fail on an
+        # idle runner; the checker excludes exactly those fields and names
+        # them, then compares everything else -- revision, findings, path
+        # steps, ordering, exclusions -- exactly.
+        run: python eval/check_determinism.py examples
+      - name: Every corpus file, audited separately and twice
+        # 40 independent programs: any set iterated without sorting has 40
+        # chances to reveal itself here.
+        run: |
+          python eval/check_determinism.py --each eval/corpus
+          python eval/check_determinism.py --each eval/corpus_hard

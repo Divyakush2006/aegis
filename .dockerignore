@@ -1,0 +1,9 @@
+.git
+.github
+ide
+docs
+**/__pycache__
+**/*.egg-info
+**/.pytest_cache
+**/node_modules
+*.sarif

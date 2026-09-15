@@ -1,0 +1,25 @@
+{
+  "name": "aegis-ide-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Aegis IDE — a Theia-based development environment for the Aegis compiler",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "workspaces": [
+    "aegis-ide",
+    "browser-app"
+  ],
+  "devDependencies": {
+    "@theia/cli": "1.75.0",
+    "rimraf": "^5.0.0",
+    "typescript": "~5.4.5"
+  },
+  "scripts": {
+    "clean": "npm run clean --workspaces --if-present",
+    "build": "npm run build --workspace aegis-ide && npm run build --workspace browser-app",
+    "start": "npm run start --workspace browser-app",
+    "watch": "npm run watch --workspace aegis-ide"
+  }
+}

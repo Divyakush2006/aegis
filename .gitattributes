@@ -1,0 +1,18 @@
+# Normalise line endings in the repository; each checkout uses the platform's own.
+* text=auto
+
+*.py   text diff=python
+*.ts   text
+*.tsx  text
+*.js   text
+*.mjs  text
+*.json text
+*.md   text diff=markdown
+*.yml  text
+*.toml text
+*.c    text
+*.h    text
+*.sh   text eol=lf
+
+*.png  binary
+*.ico  binary

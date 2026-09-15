@@ -1,0 +1,45 @@
+{
+  "name": "browser-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The Aegis IDE browser application",
+  "license": "MIT",
+  "dependencies": {
+    "@theia/core": "1.75.0",
+    "@theia/editor": "1.75.0",
+    "@theia/file-search": "1.75.0",
+    "@theia/filesystem": "1.75.0",
+    "@theia/markers": "1.75.0",
+    "@theia/messages": "1.75.0",
+    "@theia/monaco": "1.75.0",
+    "@theia/navigator": "1.75.0",
+    "@theia/output": "1.75.0",
+    "@theia/preferences": "1.75.0",
+    "@theia/process": "1.75.0",
+    "@theia/search-in-workspace": "1.75.0",
+    "@theia/terminal": "1.75.0",
+    "@theia/workspace": "1.75.0",
+    "aegis-ide": "0.1.0"
+  },
+  "devDependencies": {
+    "@theia/cli": "1.75.0"
+  },
+  "scripts": {
+    "clean": "theia clean",
+    "build": "theia build --mode development",
+    "start": "theia start --plugins=local-dir:../plugins --hostname=127.0.0.1 --port=3000",
+    "watch": "theia build --watch --mode development"
+  },
+  "theia": {
+    "target": "browser",
+    "frontend": {
+      "config": {
+        "applicationName": "Aegis IDE",
+        "preferences": {
+          "files.enableTrash": false,
+          "editor.renderWhitespace": "selection"
+        }
+      }
+    }
+  }
+}

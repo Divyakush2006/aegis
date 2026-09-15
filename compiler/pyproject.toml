@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aegis-compiler"
+version = "0.1.0"
+description = "A security-aware C compiler whose dataflow analyses drive CWE detection"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Aegis" }]
+keywords = ["compiler", "static-analysis", "taint-analysis", "sarif", "security"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Security",
+    "Topic :: Software Development :: Compilers",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+
+dependencies = [
+    "pycparser>=2.21",
+    "networkx>=3.0",
+]
+
+# The compiler analyses need nothing else. Code generation and the language
+# server are extras so the analysis core stays installable anywhere.
+#
+# Adjudication deliberately adds no dependency: the live gateway is one JSON
+# POST over urllib, so `pip install aegis-compiler` is enough to use a model.
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0", "pytest-cov>=4.0", "llvmlite>=0.42", "pygls>=2.0"]
+codegen = ["llvmlite>=0.42"]
+lsp = ["pygls>=2.0"]
+
+[project.scripts]
+aegis = "aegis.cli:main"
+aegis-lsp = "aegis.server.lsp_server:main"
+
+[project.urls]
+Homepage = "https://github.com/Divyakush2006/aegis"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "eval"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"

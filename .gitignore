@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node / Theia
+node_modules/
+lib/
+*.tsbuildinfo
+src-gen/
+gen-webpack*.js
+.eslintcache
+plugins/
+
+# Build output
+*.sarif
+*.o
+*.exe
+compiler/eval/ablation.json
+
+# Editors
+.vscode/
+.idea/
+
+# Secrets — the API key is read from the environment, never from a tracked file
+.env
+.env.*
+!.env.example
+aegis.toml
+
+# Adjudication cache
+.aegis-cache/
+.ruff_cache/
+
+# Model benchmark output
+compiler/eval/model_bench.json

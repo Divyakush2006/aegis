@@ -1,0 +1,10 @@
+node_modules/
+lib/
+*.tsbuildinfo
+gen-webpack*.js
+.eslintcache
+src-gen/
+plugins/
+
+# Theia esbuild output (esbuild.mjs itself is ours and is committed)
+gen-esbuild.*.mjs

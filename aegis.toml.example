@@ -1,0 +1,34 @@
+# Aegis — project configuration.
+#
+# Copy to `aegis.toml` (git-ignored) to change adjudication defaults for this
+# repository. Everything here is safe to commit EXCEPT a credential: the key is
+# read only from the environment, and an `api_key` written here is ignored on
+# purpose, because this is the file that ends up in version control.
+#
+#   export AEGIS_API_KEY="sk-ant-..."      # or ANTHROPIC_API_KEY
+#   aegis ai --check                        # verify it before an audit
+#
+# With no key set, every command below still works: the compiler, all four
+# dataflow analyses and every detector run unchanged, and adjudication reports
+# `model = null`.
+
+[tool.aegis.ai]
+# Which model reviews findings.
+model = "claude-sonnet-5"
+
+# Requests are capped per run so an audit over a large codebase cannot spend
+# without bound. Raise deliberately.
+max_requests = 200
+
+# Retries apply to rate limits and transient 5xx only; a rejected key is never
+# retried.
+max_retries = 3
+timeout = 30.0
+
+# Verdicts are cached by a digest of the exact prompt, which makes a re-audit
+# of unchanged code free and reproducible.
+cache_enabled = true
+
+# Strip directory prefixes from prompts. File names are kept; the layout of the
+# machine they sit on is not sent.
+redact_paths = true
