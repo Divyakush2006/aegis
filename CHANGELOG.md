@@ -4,6 +4,28 @@ All notable changes to this project are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Prahari IDE as a desktop application.** The same IDE, assembled for
+  Electron: its own window, icon, native menus and taskbar entry, with no port
+  to visit and no browser tab. `npm run build:desktop` and
+  `npm run start:desktop`; `ide/scripts/Install-Shortcut.ps1` adds it to the
+  Windows Start menu so it launches without a terminal. The browser application
+  is unchanged and both are built from the same extension.
+- The Prahari shield redrawn from geometry as a multi-resolution application
+  icon (`ide/scripts/make-app-icon.py`), rather than upscaling the 64-pixel
+  favicon.
+
+### Fixed
+
+- The desktop target builds with no C++ toolchain, like the browser one. Two
+  Electron-only native modules ship no prebuilt binary — `native-keymap` is
+  substituted by a pure-JS shim that still reports the real Windows keyboard
+  layout, and `@theia/ffmpeg`'s codec *check* (not the codec-stripping
+  replacement, which runs) is skipped when its addon is absent.
+
 ## [0.1.0] — 2026-09-15
 
 The first complete release: compiler, analyses, evaluation, IDE and optional

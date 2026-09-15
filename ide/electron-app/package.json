@@ -1,0 +1,61 @@
+{
+  "name": "electron-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The Prahari IDE desktop application",
+  "license": "MIT",
+  "main": "lib/backend/electron-main.js",
+  "dependencies": {
+    "@theia/core": "1.75.0",
+    "@theia/editor": "1.75.0",
+    "@theia/electron": "1.75.0",
+    "@theia/file-search": "1.75.0",
+    "@theia/filesystem": "1.75.0",
+    "@theia/markers": "1.75.0",
+    "@theia/messages": "1.75.0",
+    "@theia/monaco": "1.75.0",
+    "@theia/navigator": "1.75.0",
+    "@theia/output": "1.75.0",
+    "@theia/preferences": "1.75.0",
+    "@theia/process": "1.75.0",
+    "@theia/search-in-workspace": "1.75.0",
+    "@theia/terminal": "1.75.0",
+    "@theia/workspace": "1.75.0",
+    "prahari-ide": "0.1.0"
+  },
+  "devDependencies": {
+    "@theia/cli": "1.75.0",
+    "electron": "42.8.1"
+  },
+  "scripts": {
+    "clean": "theia clean",
+    "build": "node build.js --mode development",
+    "start": "theia start --plugins=local-dir:../plugins",
+    "watch": "node build.js --watch --mode development"
+  },
+  "theia": {
+    "target": "electron",
+    "frontend": {
+      "config": {
+        "applicationName": "Prahari IDE",
+        "preferences": {
+          "files.enableTrash": false,
+          "editor.renderWhitespace": "selection"
+        },
+        "electron": {
+          "showWindowEarly": true,
+          "uriScheme": "prahari",
+          "appUserModelId": "org.prahari.ide",
+          "windowOptions": {
+            "icon": "resources/prahari.ico"
+          }
+        }
+      }
+    },
+    "backend": {
+      "config": {
+        "singleInstance": true
+      }
+    }
+  }
+}

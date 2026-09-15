@@ -9,7 +9,8 @@
   },
   "workspaces": [
     "prahari-ide",
-    "browser-app"
+    "browser-app",
+    "electron-app"
   ],
   "devDependencies": {
     "@theia/cli": "1.75.0",
@@ -20,6 +21,8 @@
     "clean": "npm run clean --workspaces --if-present",
     "build": "npm run build --workspace prahari-ide && npm run build --workspace browser-app",
     "start": "npm run start --workspace browser-app",
+    "build:desktop": "npm run build --workspace prahari-ide && npm run build --workspace electron-app",
+    "start:desktop": "npm run start --workspace electron-app",
     "watch": "npm run watch --workspace prahari-ide"
   }
 }

@@ -42,8 +42,14 @@ ide/
 │           ├── prahari-contribution.ts
 │           ├── prahari-frontend-module.ts
 │           └── style/index.css
-└── browser-app/              the assembled application
+├── browser-app/              the application, served in a browser
+├── electron-app/             the same application, as a desktop program
+└── scripts/                  the icon, and the Start menu shortcut
 ```
+
+The two applications are assemblies, not forks: both list the same Theia
+packages and the same `prahari-ide` extension, and differ only in their Theia
+build target. Every feature below is present in both.
 
 `common/prahari-protocol.ts` is the entire language boundary. The frontend knows
 about findings and path steps; it never learns what a lattice is.
@@ -52,9 +58,40 @@ about findings and path steps; it never learns what a lattice is.
 
 ```bash
 npm install
-npm run build
-npm start          # http://127.0.0.1:3000
+
+npm run build              # the browser application
+npm start                  # http://127.0.0.1:3000
+
+npm run build:desktop      # the desktop application
+npm run start:desktop      # opens in its own window
 ```
+
+### As a desktop program
+
+`npm run start:desktop` is still a developer's entry point — it needs a terminal
+that stays open. To launch Prahari IDE the way any other program is launched:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\Install-Shortcut.ps1 -Desktop
+```
+
+It appears in the Start menu and can be pinned to the taskbar; `-Remove` deletes
+the shortcut again. Nothing is installed or copied — the shortcut runs Electron
+directly against the build in this repository, which is also why no console
+window appears behind it.
+
+The desktop build differs from the browser one in three ways that are worth
+knowing:
+
+- **Electron is downloaded by the build, not by `npm install`.** Because
+  `.npmrc` disables install scripts (below), Electron's own postinstall never
+  runs; Theia's build step fetches the matching binary itself, so the first
+  `npm run build:desktop` is slower than later ones and needs a network
+  connection.
+- **One window per machine.** `singleInstance` is set, so launching it again
+  focuses the window you already have rather than starting a second backend.
+- **It is a program, not a page**: its own icon, taskbar entry, native menus and
+  window controls, and no port to visit or leave open.
 
 **No C++ toolchain is required, on any platform.** Two decisions make that true:
 
@@ -68,6 +105,8 @@ npm start          # http://127.0.0.1:3000
   binary is absent. Theia calls exactly one function from it, `list()`, to offer
   drive roots in file dialogs; `browser-app/shims/drivelist.js` answers that from
   the file system. Where drivelist *did* compile, the native module is kept.
+  `electron-app/esbuild.mjs` imports that same shim rather than copying it, so
+  the two builds cannot drift apart.
 
 Verified on Windows 11 with Node 22 and Visual Studio Build Tools **without** the
 C++ workload: the build finishes with 0 errors and the IDE serves on
