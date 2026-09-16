@@ -12,6 +12,7 @@
 
 import { ILogger } from '@theia/core/lib/common/logger';
 import { inject, injectable, postConstruct } from '@theia/core/shared/inversify';
+import { FileUri } from '@theia/core/lib/common/file-uri';
 import { ChildProcess, spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -25,10 +26,14 @@ import {
 import {
     PrahariAiStatus,
     PrahariAuditResult,
+    PrahariChatReply,
+    PrahariChatRequest,
     PrahariClient,
     PrahariExplanation,
+    PrahariRunPlan,
     PrahariService
 } from '../common/prahari-protocol';
+import { planRun, shellFor } from './run-planner';
 
 /** Notifications the Python server pushes; mirrored in `server/lsp_server.py`. */
 const FINDINGS_NOTIFICATION = 'prahari/findings';
@@ -244,6 +249,49 @@ export class PrahariServerImpl implements PrahariService {
         return this.execute('prahari.build', [uri], {
             uri,
             error: 'the Prahari language server is unavailable'
+        });
+    }
+
+    async chat(request: PrahariChatRequest): Promise<PrahariChatReply> {
+        return this.execute<PrahariChatReply>('prahari.chat', [request], {
+            reply: '',
+            model: '',
+            error: 'the Prahari language server is unavailable'
+        });
+    }
+
+    async planRun(uri: string): Promise<PrahariRunPlan> {
+        try {
+            const file = FileUri.fsPath(uri);
+            const plan = planRun(file);
+            if (plan.kind === 'terminal') {
+                return { ...plan, ...shellFor(plan, path.basename(file)) };
+            }
+            return plan;
+        } catch (error) {
+            this.logger.error(`Could not plan a run for ${uri}: ${error}`);
+            return { kind: 'unavailable', message: `Prahari could not prepare this file to run: ${error}` };
+        }
+    }
+
+    async openExternally(uri: string): Promise<{ error?: string }> {
+        const file = FileUri.fsPath(uri);
+        const [command, args] =
+            process.platform === 'win32'
+                ? ['explorer.exe', [file]]
+                : process.platform === 'darwin'
+                  ? ['open', [file]]
+                  : ['xdg-open', [file]];
+        return new Promise(resolve => {
+            try {
+                const child = spawn(command, args, { detached: true, stdio: 'ignore', windowsHide: false });
+                child.on('error', error => resolve({ error: String(error) }));
+                child.unref();
+                // explorer.exe exits with 1 even on success, so a spawned process is the success signal.
+                setTimeout(() => resolve({}), 300);
+            } catch (error) {
+                resolve({ error: String(error) });
+            }
         });
     }
 

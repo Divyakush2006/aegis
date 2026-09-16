@@ -7,8 +7,8 @@
  * workload: a multi-gigabyte prerequisite for listing drive letters.
  *
  * This answers the same question from the file system. It is substituted only
- * when the native binary is absent (see ../esbuild.mjs); a machine that has
- * compiled drivelist keeps the original.
+ * when the native binary is absent (see native-fallbacks.mjs); a machine that
+ * has compiled drivelist keeps the original.
  *
  * Each entry carries the field Theia reads (`mountpoints[].path`) and the
  * descriptive fields drivelist documents, so a future caller that reads more

@@ -42,6 +42,7 @@ $name = 'Prahari IDE'
 $ide = Split-Path -Parent $PSScriptRoot
 $app = Join-Path $ide 'electron-app'
 $electron = Join-Path $ide 'node_modules\electron\dist\electron.exe'
+$plugins = Join-Path $ide 'plugins'
 $icon = Join-Path $app 'resources\prahari.ico'
 
 $targets = @(
@@ -74,8 +75,12 @@ try {
     foreach ($target in $targets) {
         $shortcut = $shell.CreateShortcut($target)
         $shortcut.TargetPath = $electron
-        # Electron takes the application directory; package.json names the entry point.
-        $shortcut.Arguments = "`"$app`""
+        # Electron takes the application directory; package.json names the entry
+        # point. The built-in VS Code extensions live outside that directory, so
+        # the plugin folder is named explicitly, exactly as `npm start` does --
+        # without it the editor starts with no Git, no C/C++ support and no
+        # Extensions to manage.
+        $shortcut.Arguments = "`"$app`" `"--plugins=local-dir:$plugins`""
         $shortcut.WorkingDirectory = $app
         $shortcut.IconLocation = "$icon,0"
         $shortcut.Description = 'Prahari IDE - the security-aware C compiler and its development environment'

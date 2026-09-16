@@ -3,54 +3,22 @@
  *
  * Theia generates this file once and then leaves it alone, which makes it the
  * sanctioned place to adjust the build without patching Theia. It is Theia's
- * default browser-target configuration plus one plugin, explained below.
+ * default browser-target configuration plus two additions, explained below.
  */
 import { browserOptions, watch } from './gen-esbuild.browser.mjs';
 import { nodeOptions } from './gen-esbuild.node.mjs';
+import { nativeFallbacks } from '../shims/native-fallbacks.mjs';
 import esbuild from 'esbuild';
 import { copyFileSync, existsSync, mkdirSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const require = createRequire(import.meta.url);
 
-/**
- * Substitute a pure-JS `drivelist` when the native module could not be built.
- *
- * Theia's backend `require`s drivelist at module load, so a missing native
- * binary does not fail the build -- the bundler marks it external -- it fails
- * the *backend at startup*. drivelist ships no prebuilt Windows binary, so on a
- * machine without the Visual Studio C++ workload that is the default outcome.
- *
- * The substitute is chosen per build, not committed as a replacement: where
- * drivelist compiled (Linux CI, or a Windows machine with the workload) the
- * native module is kept unchanged.
- */
-function drivelistFallback() {
-    let nativeBuilt = false;
-    try {
-        nativeBuilt = existsSync(require.resolve('drivelist/build/Release/drivelist.node'));
-    } catch {
-        nativeBuilt = false;
-    }
-    return {
-        name: 'prahari-drivelist-fallback',
-        setup(build) {
-            if (nativeBuilt) {
-                return;
-            }
-            console.log('prahari: drivelist has no native binary here; bundling shims/drivelist.js instead');
-            build.onResolve({ filter: /^drivelist$/ }, () => ({
-                path: path.join(here, 'shims', 'drivelist.js')
-            }));
-        }
-    };
-}
-
-// Prepended so it resolves `drivelist` before any other plugin sees it.
-nodeOptions.plugins = [drivelistFallback(), ...(nodeOptions.plugins ?? [])];
+// Stand-ins for native modules that were not built here, shared with the
+// desktop application. Prepended so they resolve before any other plugin sees
+// them. The reasoning is in ../shims/native-fallbacks.mjs.
+nodeOptions.plugins = [nativeFallbacks(), ...(nodeOptions.plugins ?? [])];
 
 /**
  * Serve the Prahari icon at /favicon.ico.
@@ -82,7 +50,11 @@ if (watch) {
         copyFavicon();
         await nodeContext.rebuild();
         await nodeContext.dispose();
-    } catch {
+    } catch (error) {
+        // esbuild reports its own build errors, but anything else -- an output
+        // file held open by a running instance, a plugin fault -- would
+        // otherwise vanish behind a bare exit code.
+        console.error(error);
         process.exit(1);
     }
 }

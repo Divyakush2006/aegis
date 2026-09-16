@@ -3,10 +3,11 @@
  *
  * `native-keymap` reports the operating system's keyboard layout. It ships C++
  * sources and no prebuilt binary, so npm compiles it on install through
- * `binding.gyp` -- which `../../.npmrc` deliberately prevents, and which would
+ * `binding.gyp` -- which `../.npmrc` deliberately prevents, and which would
  * otherwise make the Visual Studio C++ workload a prerequisite for building the
  * desktop application. It is substituted only when the native binary is absent
- * (see ../esbuild.mjs); a machine that has compiled it keeps the real module.
+ * (see native-fallbacks.mjs); a machine that has compiled it keeps the real
+ * module.
  *
  * What is kept and what is lost:
  *

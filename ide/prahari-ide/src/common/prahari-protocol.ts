@@ -143,6 +143,56 @@ export interface PrahariStatus {
     phase?: string;
 }
 
+/** One program invocation in a run: compile, then execute, for instance. */
+export interface PrahariRunStep {
+    program: string;
+    args: string[];
+}
+
+/**
+ * What pressing Run does for a file. Every file gets one of these — there is
+ * no "cannot run" error, only an action or an explanation of what to install.
+ */
+export type PrahariRunPlan =
+    | {
+          kind: 'terminal';
+          /** Human-readable toolchain, e.g. `C (gcc)`. */
+          runner: string;
+          cwd: string;
+          steps: PrahariRunStep[];
+          /** Toolchain directories put first on PATH, so built programs find their runtime. */
+          pathPrefix: string[];
+          /** Filled in by the backend: the platform shell wrapping the steps. */
+          shellPath?: string;
+          shellArgs?: string[];
+      }
+    | { kind: 'preview'; runner: string }
+    | { kind: 'markdown'; runner: string }
+    | { kind: 'external'; runner: string }
+    | { kind: 'info'; message: string }
+    | { kind: 'unavailable'; message: string };
+
+export interface PrahariChatTurn {
+    role: 'user' | 'assistant';
+    content: string;
+}
+
+export interface PrahariChatRequest {
+    question: string;
+    history: PrahariChatTurn[];
+    /** The active editor, when there is one; the file's text is sent as shown, unsaved edits included. */
+    uri?: string;
+    language?: string;
+    text?: string;
+    selection?: string;
+}
+
+export interface PrahariChatReply {
+    reply: string;
+    model: string;
+    error?: string;
+}
+
 /** Backend operations, each one a compiler phase the user can invoke. */
 export interface PrahariService {
     /** Run the full pipeline: taint, heap state machine, detectors. */
@@ -161,6 +211,12 @@ export interface PrahariService {
     adjudicate(uri: string): Promise<PrahariAuditResult>;
     /** Whether adjudication is configured, for the status bar and the panel. */
     aiStatus(): Promise<PrahariAiStatus>;
+    /** Ask Prahari AI a question about the open file, on the free interactive model. */
+    chat(request: PrahariChatRequest): Promise<PrahariChatReply>;
+    /** Decide how the Run button runs a file. Has no side effects. */
+    planRun(uri: string): Promise<PrahariRunPlan>;
+    /** Open a file in the application the operating system associates with it. */
+    openExternally(uri: string): Promise<{ error?: string }>;
     /** True once the Python language server has completed initialisation. */
     isReady(): Promise<boolean>;
     dispose(): void;
@@ -182,6 +238,11 @@ export namespace PrahariCommands {
     export const BUILD_LLVM = 'prahari.buildLlvm';
     export const ADJUDICATE = 'prahari.adjudicateFindings';
     export const AI_STATUS = 'prahari.aiStatus';
+    export const RUN_FILE = 'prahari.runFile';
+    export const STOP_RUN = 'prahari.stopRun';
+    export const OPEN_CHAT = 'prahari.openChat';
+    export const ASK_ABOUT_SELECTION = 'prahari.askAboutSelection';
 }
 
 export const FINDINGS_WIDGET_ID = 'prahari.findings';
+export const CHAT_WIDGET_ID = 'prahari.chat';

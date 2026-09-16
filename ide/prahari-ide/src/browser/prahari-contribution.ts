@@ -104,6 +104,27 @@ export class PrahariViewContribution
         this.prahari.setClient(this);
     }
 
+    /**
+     * Show the Explorer the first time the application is opened.
+     *
+     * Theia restores a saved layout when there is one, and `initializeLayout`
+     * runs only when there is nothing to restore. So this applies to a fresh
+     * installation and never overrides someone who collapsed the side panel
+     * deliberately -- their layout is restored and this is not called.
+     *
+     * Without it a first run opens with the side panel collapsed and no view
+     * selected, which is not what VS Code does and reads as an empty window.
+     *
+     * The id is `EXPLORER_VIEW_CONTAINER_ID` from `@theia/navigator`, written
+     * out rather than imported so this extension keeps its small dependency
+     * set. `desktop-check.js` asserts the Explorer is visible on a first run,
+     * so if the id ever changes the check fails rather than the window quietly
+     * coming up empty.
+     */
+    async initializeLayout(_app: FrontendApplication): Promise<void> {
+        await this.shell.revealWidget('explorer-view-container');
+    }
+
     // -- client notifications ----------------------------------------------
 
     onStatus(status: PrahariStatus): void {
@@ -168,7 +189,6 @@ export class PrahariViewContribution
         super.registerCommands(registry);
 
         registry.registerCommand(AuditCommand, {
-            isEnabled: () => !!this.currentUri(),
             execute: () => this.runAudit()
         });
 
@@ -183,7 +203,6 @@ export class PrahariViewContribution
         });
 
         registry.registerCommand(AdjudicateCommand, {
-            isEnabled: () => !!this.currentUri(),
             execute: () => this.runAdjudication()
         });
 
@@ -214,10 +233,32 @@ export class PrahariViewContribution
         return this.editorManager.currentEditor?.editor.uri.toString();
     }
 
-    protected async runAudit(): Promise<void> {
-        const uri = this.currentUri();
+    /**
+     * The URI to analyse, or undefined after telling the user why there is none.
+     *
+     * The compiler analyses C. Asked to audit a Python file it would report a
+     * failed compilation, which reads as a fault in the IDE; saying what it
+     * audits is the honest answer and not an error.
+     */
+    protected auditableUri(): string | undefined {
+        const uri = this.editorManager.currentEditor?.editor.uri;
         if (!uri) {
-            this.messageService.warn('Prahari: open a C file first.');
+            this.messageService.info('Prahari: open a C file (.c or .h) to audit it.');
+            return undefined;
+        }
+        if (!/\.(c|h)$/i.test(uri.path.base)) {
+            this.messageService.info(
+                `Prahari audits C source (.c and .h files); ${uri.path.base} is not C. ` +
+                    'Press Run to execute it, or ask Prahari AI to review it.'
+            );
+            return undefined;
+        }
+        return uri.toString();
+    }
+
+    protected async runAudit(): Promise<void> {
+        const uri = this.auditableUri();
+        if (!uri) {
             return;
         }
         const widget = await this.openView({ activate: true, reveal: true });
@@ -238,9 +279,8 @@ export class PrahariViewContribution
      * not be reached. All three leave the compiler's findings on screen.
      */
     protected async runAdjudication(): Promise<void> {
-        const uri = this.currentUri();
+        const uri = this.auditableUri();
         if (!uri) {
-            this.messageService.warn('Prahari: open a C file first.');
             return;
         }
         const widget = await this.openView({ activate: true, reveal: true });
@@ -299,7 +339,7 @@ export class PrahariViewContribution
 
     protected async explainAtCursor(): Promise<void> {
         const editor = this.editorManager.currentEditor?.editor;
-        if (!editor) {
+        if (!editor || !this.auditableUri()) {
             return;
         }
         const line = editor.cursor.line;
@@ -322,7 +362,7 @@ export class PrahariViewContribution
     }
 
     protected async showLlvm(): Promise<void> {
-        const uri = this.currentUri();
+        const uri = this.auditableUri();
         if (!uri) {
             return;
         }

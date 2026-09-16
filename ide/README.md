@@ -36,15 +36,21 @@ ide/
 │       │   └── prahari-protocol.ts
 │       ├── node/             backend: drives the Python language server
 │       │   ├── prahari-server.ts
+│       │   ├── run-planner.ts        how Run runs each kind of file
 │       │   └── prahari-backend-module.ts
-│       └── browser/          frontend: panel, commands, markers
+│       └── browser/          frontend: panels, commands, buttons, markers
 │           ├── findings-widget.tsx
+│           ├── chat-widget.tsx       Prahari AI
 │           ├── prahari-contribution.ts
+│           ├── run-contribution.ts   Run and Stop
+│           ├── toolbar-contribution.ts   editor and title-bar buttons
+│           ├── welcome-widget.tsx
 │           ├── prahari-frontend-module.ts
-│           └── style/index.css
+│           └── style/
 ├── browser-app/              the application, served in a browser
 ├── electron-app/             the same application, as a desktop program
-└── scripts/                  the icon, and the Start menu shortcut
+├── shims/                    pure-JS stand-ins for native modules (see below)
+└── scripts/                  the logo generator and the Start menu shortcut
 ```
 
 The two applications are assemblies, not forks: both list the same Theia
@@ -58,6 +64,7 @@ about findings and path steps; it never learns what a lattice is.
 
 ```bash
 npm install
+npm run download:plugins   # the built-in VS Code extensions — once, ~200 MB
 
 npm run build              # the browser application
 npm start                  # http://127.0.0.1:3000
@@ -65,6 +72,12 @@ npm start                  # http://127.0.0.1:3000
 npm run build:desktop      # the desktop application
 npm run start:desktop      # opens in its own window
 ```
+
+`download:plugins` fetches the same built-in extension set VS Code ships — Git,
+C/C++, the language features, the JavaScript debugger: 90 extensions into
+`ide/plugins/`, which is git-ignored because it is downloadable content rather
+than source. The IDE runs without them; it simply has no Git integration and no
+Extensions to manage, so it is worth the one-time download.
 
 ### As a desktop program
 
@@ -101,12 +114,20 @@ knowing:
   the whole install. Every other native module the IDE uses (`node-pty`,
   `@parcel/watcher`, `trash`) ships its binary inside the package. Not running
   third-party install scripts is also the safer default.
-- **`browser-app/esbuild.mjs` substitutes a pure-JS `drivelist`** when the native
-  binary is absent. Theia calls exactly one function from it, `list()`, to offer
-  drive roots in file dialogs; `browser-app/shims/drivelist.js` answers that from
-  the file system. Where drivelist *did* compile, the native module is kept.
-  `electron-app/esbuild.mjs` imports that same shim rather than copying it, so
-  the two builds cannot drift apart.
+- **`shims/native-fallbacks.mjs` substitutes pure-JS stand-ins** for the three
+  native modules that publish no prebuilt binary, and only where the binary is
+  genuinely absent — a machine that compiled them keeps the real ones. Both
+  applications import the one plugin, so their builds cannot drift apart:
+
+  | Module | What it does | What the stand-in gives up |
+  |---|---|---|
+  | `drivelist` | drive roots in file dialogs | nothing — the same list, read from the file system |
+  | `native-keymap` | the OS keyboard layout | the per-key character map; the layout itself is still read from the Windows registry, and keybindings match by physical key position |
+  | `@vscode/windows-ca-certs` | Windows' certificate store, for VS Code's proxy agent | automatic trust of a *corporate* root certificate; Node's own CA list still applies, as it does on Linux and macOS |
+
+  A fourth, `@theia/ffmpeg`, is handled in `electron-app/build.js`: its
+  codec-stripping replacement runs normally, and only its *verification* — which
+  needs an addon that cannot be compiled here — is skipped.
 
 Verified on Windows 11 with Node 22 and Visual Studio Build Tools **without** the
 C++ workload: the build finishes with 0 errors and the IDE serves on
@@ -127,6 +148,65 @@ so adding a key there and restarting the IDE is the whole setup. It is never rea
 process and never crosses the JSON-RPC boundary — the frontend receives a
 fingerprint, not a credential.
 
+## A full workbench, not a viewer
+
+The application carries the views a VS Code user expects, assembled from the
+same upstream components the Eclipse Theia IDE ships:
+
+| | |
+|---|---|
+| **Explorer**, **Search** | file tree, Open Editors, ripgrep-backed search |
+| **Source Control** | Git, through the built-in `vscode.git` extension |
+| **Run and Debug**, **Testing** | debug views and the test explorer |
+| **Extensions** | browse and install from Open VSX, as in VS Code |
+| **Problems**, **Output**, **Terminal**, **Debug Console** | the full bottom panel |
+| **Welcome** page, **Keyboard Shortcuts** editor, **Settings** | the usual entry points |
+| Notebooks, Timeline, call and type hierarchy, editor preview tabs | the smaller VS Code behaviours |
+
+Everything above is verified on every run of `desktop-check.js`, which drives
+the built application and fails on any console error.
+
+## Run any file
+
+Every editor tab carries **▶ Run** (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>N</kbd>),
+and so does the title bar; **■ Stop** (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd>)
+appears while a program is running. Both are also in the **Run** menu. VS Code
+needs a separate extension per language before its play button does anything;
+here the IDE decides itself, in `prahari-ide/src/node/run-planner.ts`:
+
+| File | What Run does |
+|---|---|
+| `.c`, `.cpp` and friends | compile with gcc, clang or g++ to a temporary executable, then run it — only if the build succeeded |
+| a C/C++ file without `main`, or a header | a syntax check, since there is nothing to execute |
+| `.py`, `.js`, `.ts`, `.java`, `.go`, `.rs`, `.cs`, `.rb`, `.php`, `.pl`, `.ps1`, `.bat`, `.sh` and ~40 more | the language's own interpreter or compiler |
+| a script with a `#!` line | the interpreter the line names |
+| `.html`, `.svg`, `.pdf`, images | the built-in preview |
+| `.md` | the Markdown preview |
+| `.json`, `.yaml`, `.txt` and other data | a note that there is nothing to execute |
+| anything else | the application the operating system associates with it |
+
+Programs run in an integrated terminal named after the file, so their output
+stays readable and they can read from the keyboard; one Run terminal is kept
+and replaced on each run, as in VS Code. Toolchains are found on PATH and in the
+places Windows installers put them without touching PATH (MSYS2, LLVM, Git for
+Windows), and a toolchain that is missing produces install instructions rather
+than an error. The editor is saved before it runs.
+
+## Prahari AI
+
+The **Prahari AI** button at the top right of the window
+(<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>I</kbd>) opens the assistant on the right-hand
+side bar, where VS Code keeps its chat. A question is sent with the active
+editor's text (unsaved edits included), its selection and — for C — the
+compiler's findings, so "why is line 19 dangerous?" needs no copying. Replies
+render as Markdown, and each code block has **Copy** and **Insert at cursor**.
+*Ask Prahari AI* is also on the editor's context menu.
+
+It uses the same free-only gateway as adjudication (below), so the model is
+whichever free model `.env` configures and the key never reaches the window.
+With no key configured the panel says how to add one; everything else works
+without it.
+
 ## What it contributes
 
 | Command | Binding | Behaviour |
@@ -137,6 +217,13 @@ fingerprint, not a credential.
 | **Prahari: Show Generated LLVM IR** | — | Runs the backend over the open file |
 | **Prahari: Review Findings with AI** | — | Audits, then reviews each finding through the configured model |
 | **Prahari: AI Adjudication Status** | — | Model, endpoint and key fingerprint — never the key |
+| **Run File** / **Stop Running File** | <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>N</kbd> / <kbd>M</kbd> | See [Run any file](#run-any-file) |
+| **Prahari: Open Prahari AI** | <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>I</kbd> | Toggles the assistant panel |
+| **Prahari: Ask Prahari AI** | editor context menu | Opens the assistant with a question about the selection |
+
+**Audit** is also a button on the tab of every C file and in the title bar. On a
+file that is not C it says what Prahari audits rather than reporting a failed
+compilation.
 
 Plus, live from the language server as you edit: type-checker diagnostics on
 save, hover showing declared types and taint summaries, and completion filtered
@@ -215,9 +302,35 @@ Two checks, at different levels:
 
 ```bash
 node e2e-check.js        # Node drives the Python language server directly
+node run-check.js        # the Run button's planner, in every installed language
+node desktop-check.js    # the desktop application, driven as a user would
 npm start                # then, in another terminal:
 node browser-check.js    # the running IDE, driven in headless Chrome
 ```
+
+`run-check.js` writes a small program in each language, asks the planner how
+to run it and executes the exact shell script the terminal would receive,
+asserting the program's own output: C reading from standard input, a path
+containing a space and an apostrophe, a failed compile that must not run, and a
+missing toolchain that must produce install instructions.
+
+`desktop-check.js` launches the built Electron application in an isolated
+profile — its own instance lock, settings and layout, so it cannot disturb a
+window you are working in — and asserts the logo renders, the VS Code menus and
+the five activity-bar views exist, the Explorer lists the folder and opens a
+file, Go to File works, all five Prahari commands are registered, and an audit
+produces findings with their path traces. It then presses the buttons: the
+editor's Run on a C program and the title bar's Run on a Python script (each
+proven by a file the program itself writes), Run on JSON and HTML, Audit on a
+Python file, and two questions to Prahari AI about the open file, the second
+asserting that a code block in the reply renders with Copy and Insert.
+
+One console message is reported separately, under `knownUpstream`, rather
+than failing the run: Theia 1.75's VS Code extension host can throw
+`INVALID tab` when a file is opened by double-click. It has no visible effect,
+and it reproduces in a build with every Prahari frontend contribution removed,
+so it belongs to Theia. Any other console error still fails the check. It fails on any console error, and it
+fails loudly if the application exits early rather than reporting a silent pass.
 
 `browser-check.js` opens the IDE the way a user would — workspace, Go to File,
 command palette, audit, AI status and review — over the Chrome DevTools

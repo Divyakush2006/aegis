@@ -206,6 +206,7 @@ A linker is needed only to turn generated object files into executables.
 ```bash
 cd ide
 npm install
+npm run download:plugins             # built-in VS Code extensions, once
 npm run build:desktop
 npm run start:desktop                # opens in its own window
 ```
@@ -261,8 +262,28 @@ ordinary work in Theia and awkward-to-impossible in a VS Code extension.
 **Nothing upstream is patched.** `prahari-ide` depends only on Theia's public
 APIs, so upgrading Theia is a version bump.
 
+It is a complete workbench rather than a single-purpose viewer: Explorer,
+Search, Source Control backed by Git, Run and Debug, Testing, an Extensions view
+that installs from Open VSX, Problems, Output, Terminal, a Welcome page and a
+Keyboard Shortcuts editor — the same components the Eclipse Theia IDE ships,
+plus the 90 built-in VS Code extensions fetched by `npm run download:plugins`.
+`ide/desktop-check.js` drives the built application and asserts all of it.
+
+Three things sit where a VS Code user looks for them:
+
+- **▶ Run** on every editor tab and in the title bar runs *any* file — C and C++
+  are compiled and executed in an integrated terminal, Python, JavaScript,
+  TypeScript, Java and some forty other languages run with their own toolchain,
+  pages and Markdown open in a preview — and says what to install rather than
+  failing when a toolchain is missing.
+- **Audit** on every C tab and in the title bar.
+- **Prahari AI** at the top right: an assistant panel that answers with the open
+  file, the selection and the compiler's findings as context, on free models.
+
 | Command | Binding | Behaviour |
 |---|---|---|
+| **Run File** | <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>N</kbd> | Runs the active file, whatever its language |
+| **Prahari: Open Prahari AI** | <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>I</kbd> | The assistant panel on the right-hand side bar |
 | **Prahari: Audit Current File** | <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>A</kbd> | Full pipeline; fills the findings panel and the Problems view |
 | **Prahari: Show Findings Panel** | — | Toggles the panel |
 | **Prahari: Explain Function at Cursor** | — | CFG shape, call targets, interprocedural taint summary |

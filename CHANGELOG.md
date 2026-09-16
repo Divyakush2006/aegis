@@ -14,9 +14,47 @@ All notable changes to this project are recorded here. The format follows
   `npm run start:desktop`; `ide/scripts/Install-Shortcut.ps1` adds it to the
   Windows Start menu so it launches without a terminal. The browser application
   is unchanged and both are built from the same extension.
-- The Prahari shield redrawn from geometry as a multi-resolution application
-  icon (`ide/scripts/make-app-icon.py`), rather than upscaling the 64-pixel
-  favicon.
+- **A new logo**: the sentinel's shield now carries a dataflow path — a source
+  node and an amber sink joined by one link, the findings panel's trace reduced
+  to a mark. Drawn from geometry by `ide/scripts/make-app-icon.py`, which emits
+  one shape as SVG for the in-application logo and rasterises the same geometry
+  for the Windows icon and both favicons, so they cannot drift apart. It appears
+  top left in the title bar of both applications, on the desktop window and its
+  shortcut, and in the browser tab.
+- **A full VS Code-equivalent workbench.** Both applications now carry Explorer,
+  Search, Source Control, Run and Debug, Testing, Extensions, Notebooks,
+  Timeline, call and type hierarchy, editor preview tabs, a Welcome page and a
+  Keyboard Shortcuts editor. `npm run download:plugins` fetches the 90 built-in
+  VS Code extensions — Git, C/C++, the language features — into a git-ignored
+  `ide/plugins/`.
+- `ide/desktop-check.js`: drives the built desktop application in an isolated
+  profile and asserts the logo, the menus, the activity bar, the Explorer,
+  opening files, Go to File, every Prahari command and an audit with its path
+  traces, failing on any console error.
+- The Explorer opens on a first run, as it does in VS Code. Theia restores a
+  saved layout when there is one, so this never overrides a collapsed panel.
+- **Run any file.** A ▶ Run button on every editor tab and in the title bar,
+  Ctrl+Alt+N, and *Run → Run File*. C and C++ compile to a temporary executable
+  and run in an integrated terminal that accepts keyboard input; Python,
+  JavaScript, TypeScript, Java, Go, Rust, C#, Ruby, PHP, Perl, PowerShell,
+  batch, shell scripts and some forty other languages run with their own
+  toolchain, found on PATH or where Windows installers put it. A file without
+  `main` gets a syntax check, web pages and images open in the preview,
+  Markdown in its renderer, data files explain that there is nothing to
+  execute, and a missing toolchain produces install instructions — never an
+  error. ■ Stop interrupts the program. `ide/run-check.js` runs a program in
+  every installed language through the exact script the terminal receives.
+- **Prahari AI**, an assistant panel on the right-hand side bar, opened from
+  the title bar's *Prahari AI* button or Ctrl+Alt+I. It answers with the active
+  file, its selection and, for C, the compiler's findings as context; replies
+  render as Markdown, and every code block can be copied or inserted at the
+  cursor. It uses the same free-only gateway as adjudication
+  (`prahari.chat`, `compiler/src/prahari/ai/assistant.py`).
+- An **Audit** button on C editor tabs and in the title bar. Audit on a file
+  that is not C now says what Prahari audits instead of reporting a failed
+  compilation.
+- The Welcome page offers Run, Audit and Prahari AI in place of Theia AI's
+  banner, which advertised a different, paid assistant.
 
 ### Fixed
 

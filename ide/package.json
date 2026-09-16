@@ -23,6 +23,16 @@
     "start": "npm run start --workspace browser-app",
     "build:desktop": "npm run build --workspace prahari-ide && npm run build --workspace electron-app",
     "start:desktop": "npm run start --workspace electron-app",
+    "download:plugins": "theia download:plugins --ignore-errors",
     "watch": "npm run watch --workspace prahari-ide"
-  }
+  },
+  "theiaPluginsDir": "plugins",
+  "theiaPlugins": {
+    "vscode-builtin-extensions": "https://github.com/eclipse-theia/vscode-builtin-extensions/releases/download/1.108.2/vscode-builtin-extensions-1.108.2.tar.gz"
+  },
+  "theiaPluginsExcludeIds": [
+    "ms-vscode.js-debug-companion",
+    "vscode.extension-editing",
+    "vscode.microsoft-authentication"
+  ]
 }

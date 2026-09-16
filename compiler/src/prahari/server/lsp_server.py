@@ -49,6 +49,7 @@ BUILD_COMMAND = "prahari.build"
 EXPLAIN_COMMAND = "prahari.explain"
 ADJUDICATE_COMMAND = "prahari.adjudicate"
 AI_STATUS_COMMAND = "prahari.aiStatus"
+CHAT_COMMAND = "prahari.chat"
 
 _SEVERITY_MAP = {
     Severity.ERROR: lsp.DiagnosticSeverity.Error,
@@ -527,6 +528,66 @@ def ai_status(ls: PrahariLanguageServer, *args: Any) -> dict:
         return load_config().describe()
     except Exception as exc:
         return {"configured": False, "error": str(exc)}
+
+
+@server.command(CHAT_COMMAND)
+@server.thread()
+def chat(ls: PrahariLanguageServer, *args: Any) -> dict:
+    """One Prahari AI turn, grounded in the open file and its findings.
+
+    Runs on a worker thread: a free-tier model can take many seconds to answer,
+    and the editor's hovers and completions must not wait behind it.
+    """
+    request = next((arg for arg in _flatten(args) if isinstance(arg, dict)), None)
+    if request is None:
+        return {"reply": "", "model": "", "error": "no question received"}
+    try:
+        from ..ai.assistant import ChatTurn, EditorContext, ask
+        from ..ai.config import load_config
+        from ..ai.gateway import build_gateway
+
+        uri = request.get("uri") or ""
+        context = EditorContext(
+            path=uri_to_path(uri) if uri.startswith("file:") else str(request.get("path") or ""),
+            language=str(request.get("language") or ""),
+            text=str(request.get("text") or ""),
+            selection=str(request.get("selection") or ""),
+        )
+        if uri.startswith("file:") and context.path.lower().endswith((".c", ".h")):
+            index = ls.compile(uri, run_security=True)
+            if index is not None:
+                context.findings = [_finding_line(finding) for finding in index.findings]
+        history = [
+            ChatTurn(role=str(turn.get("role", "user")), content=str(turn.get("content", "")))
+            for turn in request.get("history") or []
+            if isinstance(turn, dict)
+        ]
+        # The chat panel is interactive: a developer is waiting for the answer.
+        config = load_config(role="interactive")
+        gateway = build_gateway(config, use_cache=False)
+        reply = ask(
+            gateway,
+            str(request.get("question") or ""),
+            history,
+            context,
+            redact_paths=config.redact_paths,
+        )
+        return reply.as_dict()
+    except Exception as exc:  # the panel shows the failure; the server stays up
+        logger.exception("chat failed")
+        return {"reply": "", "model": "", "error": str(exc)}
+
+
+def _finding_line(finding: Finding) -> str:
+    data = finding_to_dict(finding)
+    steps = " -> ".join(
+        f"{step.get('kind', '').lower()} line {step.get('line')}" for step in data.get("steps", [])
+    )
+    return (
+        f"{data.get('cwe')} {data.get('title')} in {data.get('function')}() at line "
+        f"{data.get('sink', {}).get('line')}: {data.get('message')}"
+        + (f" (path: {steps})" if steps else "")
+    )
 
 
 @server.command(BUILD_COMMAND)

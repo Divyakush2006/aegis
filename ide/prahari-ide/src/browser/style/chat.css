@@ -1,0 +1,283 @@
+/* Prahari AI panel and the title-bar actions.
+   Theme variables only, so light, dark and high-contrast themes need nothing extra. */
+
+/* --- title bar: Run, Audit, Prahari AI at the top right --- */
+
+#prahari-title-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: auto;
+    padding: 0 8px;
+    height: var(--theia-private-menubar-height, 30px);
+    flex: 0 0 auto;
+    z-index: 1;
+    -webkit-app-region: no-drag;
+}
+
+/* On the desktop the window controls are absolutely positioned at the right edge. */
+#prahari-title-actions.prahari-beside-window-controls {
+    margin-right: 144px;
+}
+
+.prahari-title-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 22px;
+    padding: 0 6px;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--theia-titleBar-activeForeground);
+    font-family: var(--theia-ui-font-family);
+    font-size: var(--theia-ui-font-size1);
+    cursor: pointer;
+    -webkit-app-region: no-drag;
+}
+
+.prahari-title-action:hover {
+    background: var(--theia-toolbar-hoverBackground);
+}
+
+.prahari-title-action.prahari-disabled {
+    opacity: 0.5;
+}
+
+#prahari-title-run .codicon {
+    color: var(--theia-debugIcon-startForeground, #89d185);
+}
+
+#prahari-title-ai {
+    border-color: var(--theia-button-background);
+    margin-left: 4px;
+}
+
+#prahari-title-ai .codicon {
+    color: var(--theia-button-background);
+}
+
+/* --- chat panel --- */
+
+.prahari-chat {
+    font-size: var(--theia-ui-font-size1);
+}
+
+.prahari-chat-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.prahari-chat-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--theia-sideBarSectionHeader-border, var(--theia-editorWidget-border));
+    text-transform: uppercase;
+    font-size: var(--theia-ui-font-size0);
+    font-weight: 600;
+}
+
+.prahari-chat-spacer {
+    flex: 1;
+}
+
+.prahari-chat-icon {
+    border: none;
+    background: transparent;
+    color: var(--theia-icon-foreground);
+    padding: 3px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.prahari-chat-icon:hover:not(:disabled) {
+    background: var(--theia-toolbar-hoverBackground);
+}
+
+.prahari-chat-icon:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.prahari-chat-transcript {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 10px;
+}
+
+.prahari-chat-welcome {
+    text-align: center;
+    padding: 24px 8px;
+    color: var(--theia-descriptionForeground);
+}
+
+.prahari-chat-welcome h3 {
+    color: var(--theia-foreground);
+    margin: 8px 0 4px;
+}
+
+.prahari-chat-welcome-icon {
+    font-size: 32px !important;
+    color: var(--theia-button-background);
+}
+
+.prahari-chat-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 14px;
+}
+
+.prahari-chat-suggestion {
+    border: 1px solid var(--theia-button-secondaryBackground, var(--theia-editorWidget-border));
+    background: var(--theia-button-secondaryBackground, transparent);
+    color: var(--theia-button-secondaryForeground, var(--theia-foreground));
+    border-radius: 12px;
+    padding: 3px 10px;
+    cursor: pointer;
+    font-size: var(--theia-ui-font-size1);
+}
+
+.prahari-chat-suggestion:hover {
+    background: var(--theia-button-secondaryHoverBackground, var(--theia-toolbar-hoverBackground));
+}
+
+.prahari-chat-message {
+    margin-bottom: 14px;
+}
+
+.prahari-chat-author {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.prahari-chat-model {
+    font-weight: normal;
+    color: var(--theia-descriptionForeground);
+    font-size: var(--theia-ui-font-size0);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.prahari-chat-message.user .prahari-chat-text {
+    white-space: pre-wrap;
+    background: var(--theia-editorWidget-background);
+    border: 1px solid var(--theia-editorWidget-border);
+    border-radius: 6px;
+    padding: 6px 8px;
+}
+
+.prahari-chat-message.error .prahari-chat-text {
+    border-left: 3px solid var(--theia-editorWarning-foreground);
+    padding-left: 8px;
+}
+
+.prahari-chat-thinking {
+    color: var(--theia-descriptionForeground);
+}
+
+.prahari-chat-markdown {
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.prahari-chat-markdown p {
+    margin: 4px 0 8px;
+}
+
+.prahari-chat-markdown code {
+    font-family: var(--theia-code-font-family);
+    font-size: 0.95em;
+    background: var(--theia-textCodeBlock-background);
+    border-radius: 3px;
+    padding: 0 3px;
+}
+
+.prahari-chat-code {
+    position: relative;
+    background: var(--theia-textCodeBlock-background);
+    border: 1px solid var(--theia-editorWidget-border);
+    border-radius: 6px;
+    padding: 8px;
+    overflow-x: auto;
+}
+
+.prahari-chat-code code {
+    background: none;
+    padding: 0;
+}
+
+.prahari-chat-code-actions {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    display: none;
+    background: var(--theia-editorWidget-background);
+    border-radius: 4px;
+}
+
+.prahari-chat-code:hover .prahari-chat-code-actions {
+    display: flex;
+}
+
+.prahari-chat-composer {
+    border-top: 1px solid var(--theia-editorWidget-border);
+    padding: 6px 10px 10px;
+}
+
+.prahari-chat-context {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--theia-descriptionForeground);
+    font-size: var(--theia-ui-font-size0);
+    margin-bottom: 5px;
+    cursor: pointer;
+}
+
+.prahari-chat-input-row {
+    display: flex;
+    gap: 6px;
+    align-items: flex-end;
+}
+
+.prahari-chat-input {
+    flex: 1;
+    resize: vertical;
+    min-height: 44px;
+    font-family: var(--theia-ui-font-family);
+    font-size: var(--theia-ui-font-size1);
+}
+
+.prahari-chat-send {
+    min-width: 32px !important;
+    height: 28px;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* The window title is centred absolutely; keep it clear of the actions on the right. */
+#theia-custom-title {
+    max-width: calc(100% - 2 * 460px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* --- Welcome page --- */
+
+.prahari-welcome-detail {
+    color: var(--theia-descriptionForeground);
+}
+
+.prahari-welcome-action .codicon {
+    vertical-align: middle;
+}
